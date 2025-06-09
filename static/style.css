@@ -1,2 +1,10 @@
 body {background-color: #f5f7fa;}
 footer {font-size: 0.9rem; color: #666;}
+
+.qr-preview {
+  width: 50%;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
