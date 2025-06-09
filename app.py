@@ -249,4 +249,5 @@ def delete(qr_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(host='0.0.0.0', port=8010, debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG') == '1'
+    app.run(host='0.0.0.0', port=8010, debug=debug_mode)
