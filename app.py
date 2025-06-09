@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_dance.contrib.google import make_google_blueprint, google
@@ -303,5 +304,13 @@ def delete_user(user_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        # Ensure older databases contain the new column introduced for
+        # tracking how a user upgraded. SQLite will ignore the command if the
+        # column already exists.
+        with db.engine.begin() as conn:
+            result = conn.execute(text('PRAGMA table_info(user)'))
+            columns = [row[1] for row in result]
+            if 'upgrade_method' not in columns:
+                conn.execute(text('ALTER TABLE user ADD COLUMN upgrade_method VARCHAR(20)'))
     debug_mode = os.environ.get('FLASK_DEBUG') == '1'
     app.run(host='0.0.0.0', port=8010, debug=debug_mode)
