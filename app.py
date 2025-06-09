@@ -56,10 +56,18 @@ PLAN_LIMITS = {
 
 # Monthly prices in Euro cents for Stripe
 STRIPE_PRICES = {
-    'starter': 199,
-    'pro': 499,
-    'premium': 999,
-    'unlimited': 1999,
+    'starter': 249,
+    'pro': 599,
+    'premium': 1199,
+    'unlimited': 2399,
+}
+
+# Yearly prices with 30% discount applied
+STRIPE_PRICES_YEARLY = {
+    'starter': 2092,
+    'pro': 5032,
+    'premium': 10072,
+    'unlimited': 20152,
 }
 
 # Provide current year to templates
@@ -279,7 +287,10 @@ def cancel_subscription():
 @app.route('/create_checkout_session/<plan>', methods=['POST'])
 @login_required
 def create_checkout_session(plan):
-    if plan not in STRIPE_PRICES:
+    period = request.args.get('period', 'month')
+    prices = STRIPE_PRICES if period == 'month' else STRIPE_PRICES_YEARLY
+    interval = 'month' if period == 'month' else 'year'
+    if plan not in prices:
         return 'Invalid plan', 400
     try:
         session = stripe.checkout.Session.create(
@@ -288,13 +299,13 @@ def create_checkout_session(plan):
                 'price_data': {
                     'currency': 'eur',
                     'product_data': {'name': f'{plan.capitalize()} Plan'},
-                    'unit_amount': STRIPE_PRICES[plan],
-                    'recurring': {'interval': 'month'},
+                    'unit_amount': prices[plan],
+                    'recurring': {'interval': interval},
                 },
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=url_for('stripe_success', plan=plan, _external=True),
+            success_url=url_for('stripe_success', plan=plan, _external=True) + f'?period={period}',
             cancel_url=url_for('upgrade', _external=True),
             customer_email=current_user.email,
         )
@@ -310,9 +321,13 @@ def create_checkout_session(plan):
 def stripe_success(plan):
     if plan not in PLAN_LIMITS:
         return 'Invalid plan', 400
+    period = request.args.get('period', 'month')
     current_user.plan = plan
     current_user.upgrade_method = 'stripe'
-    current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
+    if period == 'year':
+        current_user.plan_expires_at = datetime.utcnow() + timedelta(days=365)
+    else:
+        current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
     current_user.plan_cancelled = False
     db.session.commit()
     enforce_qrcode_limit(current_user)

@@ -20,30 +20,44 @@
   </div>
   <button class="btn btn-primary" type="submit" {% if not allow_new_plan %}disabled{% endif %}>Code einlösen</button>
 </form>
-<p class="text-muted">Bezahlen mit PayPal ist ein monatliches Abo. Bei Kündigung fällst du auf den BASIC-Plan zurück.</p>
-<p class="text-muted">Bezahlen mit Stripe ist ebenfalls ein monatliches Abo und unterstützt Kreditkarte, Apple Pay und Google Pay.</p>
+<p class="text-muted">Bezahlen mit PayPal oder Stripe ist monatlich oder jährlich möglich.</p>
+<p class="fw-bold text-success">Spare 30% mit dem Jahresabo!</p>
 
 <div class="mb-3 plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Starter – 1,99€/Monat</div>
+    <div class="mb-2 fw-bold">Starter – 2,49€/Monat <span class="text-success">oder 20,92€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Starter Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="1.99">
+        <input type="hidden" name="a3" value="2.49">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal</button>
+        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
       </form>
-      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='starter') }}" method="post">
-        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe</button>
+      <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+        <input type="hidden" name="cmd" value="_xclick-subscriptions">
+        <input type="hidden" name="business" value="do1ffe@darc.de">
+        <input type="hidden" name="item_name" value="Starter Plan (Jahr)">
+        <input type="hidden" name="currency_code" value="EUR">
+        <input type="hidden" name="a3" value="20.92">
+        <input type="hidden" name="p3" value="1">
+        <input type="hidden" name="t3" value="Y">
+        <input type="hidden" name="src" value="1">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+      </form>
+      <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='starter') }}" method="post">
+        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+      </form>
+      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='starter') }}?period=year" method="post">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
-  <small class="text-muted">bis zu {{ PLAN_LIMITS['starter'] }} QR-Codes – monatliches Abo</small>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['starter'] }} QR-Codes – monatlich oder jährlich</small>
   {% if current_user.plan == 'starter' %}
   <div class="mt-2">
     <span class="badge bg-primary me-2">Aktueller Plan</span>
@@ -62,25 +76,39 @@
 
 <div class="mb-3 plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Pro – 4,99€/Monat</div>
+    <div class="mb-2 fw-bold">Pro – 5,99€/Monat <span class="text-success">oder 50,32€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Pro Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="4.99">
+        <input type="hidden" name="a3" value="5.99">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal</button>
+        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
       </form>
-      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='pro') }}" method="post">
-        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe</button>
+      <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+        <input type="hidden" name="cmd" value="_xclick-subscriptions">
+        <input type="hidden" name="business" value="do1ffe@darc.de">
+        <input type="hidden" name="item_name" value="Pro Plan (Jahr)">
+        <input type="hidden" name="currency_code" value="EUR">
+        <input type="hidden" name="a3" value="50.32">
+        <input type="hidden" name="p3" value="1">
+        <input type="hidden" name="t3" value="Y">
+        <input type="hidden" name="src" value="1">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+      </form>
+      <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='pro') }}" method="post">
+        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+      </form>
+      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='pro') }}?period=year" method="post">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
-  <small class="text-muted">bis zu {{ PLAN_LIMITS['pro'] }} QR-Codes – monatliches Abo</small>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['pro'] }} QR-Codes – monatlich oder jährlich</small>
   {% if current_user.plan == 'pro' %}
   <div class="mt-2">
     <span class="badge bg-primary me-2">Aktueller Plan</span>
@@ -99,25 +127,39 @@
 
 <div class="mb-3 plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Premium – 9,99€/Monat</div>
+    <div class="mb-2 fw-bold">Premium – 11,99€/Monat <span class="text-success">oder 100,72€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Premium Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="9.99">
+        <input type="hidden" name="a3" value="11.99">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal</button>
+        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
       </form>
-      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='premium') }}" method="post">
-        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe</button>
+      <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+        <input type="hidden" name="cmd" value="_xclick-subscriptions">
+        <input type="hidden" name="business" value="do1ffe@darc.de">
+        <input type="hidden" name="item_name" value="Premium Plan (Jahr)">
+        <input type="hidden" name="currency_code" value="EUR">
+        <input type="hidden" name="a3" value="100.72">
+        <input type="hidden" name="p3" value="1">
+        <input type="hidden" name="t3" value="Y">
+        <input type="hidden" name="src" value="1">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+      </form>
+      <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='premium') }}" method="post">
+        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+      </form>
+      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='premium') }}?period=year" method="post">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
-  <small class="text-muted">bis zu {{ PLAN_LIMITS['premium'] }} QR-Codes – monatliches Abo</small>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['premium'] }} QR-Codes – monatlich oder jährlich</small>
   {% if current_user.plan == 'premium' %}
   <div class="mt-2">
     <span class="badge bg-primary me-2">Aktueller Plan</span>
@@ -136,25 +178,39 @@
 
 <div class="plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Unlimited – 19,99€/Monat</div>
+    <div class="mb-2 fw-bold">Unlimited – 23,99€/Monat <span class="text-success">oder 201,52€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Unlimited Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="19.99">
+        <input type="hidden" name="a3" value="23.99">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal</button>
+        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
       </form>
-      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='unlimited') }}" method="post">
-        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe</button>
+      <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+        <input type="hidden" name="cmd" value="_xclick-subscriptions">
+        <input type="hidden" name="business" value="do1ffe@darc.de">
+        <input type="hidden" name="item_name" value="Unlimited Plan (Jahr)">
+        <input type="hidden" name="currency_code" value="EUR">
+        <input type="hidden" name="a3" value="201.52">
+        <input type="hidden" name="p3" value="1">
+        <input type="hidden" name="t3" value="Y">
+        <input type="hidden" name="src" value="1">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+      </form>
+      <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='unlimited') }}" method="post">
+        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+      </form>
+      <form class="d-inline" action="{{ url_for('create_checkout_session', plan='unlimited') }}?period=year" method="post">
+        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
-  <small class="text-muted">unbegrenzte QR-Codes – monatliches Abo</small>
+  <small class="text-muted">unbegrenzte QR-Codes – monatlich oder jährlich</small>
   {% if current_user.plan == 'unlimited' %}
   <div class="mt-2">
     <span class="badge bg-primary me-2">Aktueller Plan</span>
