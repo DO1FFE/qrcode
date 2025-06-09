@@ -278,11 +278,8 @@ def index():
     )
 
 @app.route('/preview/<int:qr_id>')
-@login_required
 def preview(qr_id):
     qr = QRCode.query.get_or_404(qr_id)
-    if qr.user_id != current_user.id:
-        return 'Unauthorized', 403
     directory = os.path.dirname(qr.png_path)
     filename = os.path.basename(qr.png_path)
     return send_from_directory(directory, filename)
