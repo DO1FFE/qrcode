@@ -22,7 +22,7 @@
 </form>
 <h2>Bezahlen mit PayPal</h2>
 <p class="text-muted">Die Bezahlung über PayPal ist ein monatliches Abo. Bei Kündigung fällst du auf den BASIC-Plan zurück.</p>
-<div class="mb-3">
+<div class="mb-3 plan-card">
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
     <input type="hidden" name="cmd" value="_xclick-subscriptions">
     <input type="hidden" name="business" value="do1ffe@darc.de">
@@ -48,7 +48,7 @@
   </form>
   <small class="text-muted">bis zu {{ PLAN_LIMITS['starter'] }} QR-Codes – monatliches Abo</small>
 </div>
-<div class="mb-3">
+<div class="mb-3 plan-card">
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
     <input type="hidden" name="cmd" value="_xclick-subscriptions">
     <input type="hidden" name="business" value="do1ffe@darc.de">
@@ -74,7 +74,7 @@
   </form>
   <small class="text-muted">bis zu {{ PLAN_LIMITS['pro'] }} QR-Codes – monatliches Abo</small>
 </div>
-<div class="mb-3">
+<div class="mb-3 plan-card">
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
     <input type="hidden" name="cmd" value="_xclick-subscriptions">
     <input type="hidden" name="business" value="do1ffe@darc.de">
@@ -100,7 +100,7 @@
   </form>
   <small class="text-muted">bis zu {{ PLAN_LIMITS['premium'] }} QR-Codes – monatliches Abo</small>
 </div>
-<div>
+<div class="plan-card">
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
     <input type="hidden" name="cmd" value="_xclick-subscriptions">
     <input type="hidden" name="business" value="do1ffe@darc.de">
