@@ -9,6 +9,7 @@ from flask import (
     flash,
 )
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from flask_login import (
@@ -72,10 +73,15 @@ class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(2048))
     description = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     png_path = db.Column(db.String(255))
     svg_path = db.Column(db.String(255))
     jpg_path = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    @property
+    def created_at_local(self):
+        return self.created_at.astimezone(ZoneInfo("Europe/Berlin"))
 
 # Login manager
 login_manager = LoginManager(app)
@@ -181,6 +187,17 @@ def upgrade():
         else:
             flash('Ungültiger Code')
     return render_template('upgrade.html')
+
+
+@app.route('/cancel_subscription')
+@login_required
+def cancel_subscription():
+    current_user.plan = 'basic'
+    current_user.upgrade_method = 'cancelled'
+    db.session.commit()
+    enforce_qrcode_limit(current_user)
+    flash('Abo gekündigt. BASIC-Plan aktiviert.')
+    return redirect(url_for('profile'))
 
 # Helper to generate qr code files
 
@@ -292,11 +309,16 @@ def index():
         if current_user.is_authenticated
         else None
     )
-    limit_reached = limit is not None and len(qrs) >= limit
+    remaining = None
+    if current_user.is_authenticated and limit is not None:
+        remaining = max(0, limit - len(qrs))
+    limit_reached = remaining == 0 if remaining is not None else False
     return render_template(
         'index.html',
         qrcodes=qrs,
         limit_reached=limit_reached,
+        remaining=remaining,
+        limit=limit,
     )
 
 @app.route('/preview/<int:qr_id>')
@@ -404,5 +426,10 @@ if __name__ == '__main__':
                         'VARCHAR(20)'
                     )
                 )
+            result = conn.execute(text('PRAGMA table_info(qr_code)'))
+            qr_columns = [row[1] for row in result]
+            if 'created_at' not in qr_columns:
+                conn.execute(text('ALTER TABLE qr_code ADD COLUMN created_at DATETIME'))
+                conn.execute(text("UPDATE qr_code SET created_at = CURRENT_TIMESTAMP"))
     debug_mode = os.environ.get('FLASK_DEBUG') == '1'
     app.run(host='0.0.0.0', port=8010, debug=debug_mode)

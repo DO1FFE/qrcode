@@ -30,6 +30,15 @@
   <div class="col-12">
     <button type="submit" class="btn btn-primary" {% if limit_reached %}disabled{% endif %}>Erstellen</button>
   </div>
+  {% if remaining is not none and limit is not none %}
+  <div class="col-12">
+    <small class="text-muted">Du kannst noch {{ remaining }} von {{ limit }} QR-Codes erstellen.</small>
+  </div>
+  {% elif limit is none and current_user.is_authenticated %}
+  <div class="col-12">
+    <small class="text-muted">Unbegrenzte QR-Codes verfügbar.</small>
+  </div>
+  {% endif %}
 </form>
 {% if limit_reached %}
 <div class="alert alert-warning">Limit erreicht. <a href="{{ url_for('upgrade') }}">Upgrade</a> notwendig.</div>
@@ -45,6 +54,7 @@
       <div class="card-body">
         <h5 class="card-title">{{ qr.description or 'QR Code' }}</h5>
         <p class="card-text"><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
+        <p class="card-text"><small class="text-muted">{{ qr.created_at_local.strftime('%d.%m.%Y %H:%M') }}</small></p>
         <div class="btn-group" role="group">
           <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-outline-secondary btn-sm">PNG</a>
           <a href="{{ url_for('download', qr_id=qr.id, fmt='jpg') }}" class="btn btn-outline-secondary btn-sm">JPG</a>
