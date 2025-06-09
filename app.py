@@ -10,7 +10,7 @@ from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from qrcode.image.styles.colormasks import SolidFillColorMask
 import qrcode.image.svg
-from PIL import Image
+from PIL import ImageColor
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
@@ -152,9 +152,13 @@ def generate_qr_files(url, size=10, color='black', bgcolor='white', rounded=Fals
     qr.make(fit=True)
 
     drawer = RoundedModuleDrawer() if rounded else None
-    img = qr.make_image(image_factory=StyledPilImage,
-                        module_drawer=drawer,
-                        color_mask=SolidFillColorMask(front_color=color, back_color=bgcolor))
+    front = ImageColor.getcolor(color, "RGBA")
+    back = ImageColor.getcolor(bgcolor, "RGBA")
+    img = qr.make_image(
+        image_factory=StyledPilImage,
+        module_drawer=drawer,
+        color_mask=SolidFillColorMask(front_color=front, back_color=back),
+    )
     qr_id = os.urandom(8).hex()
     user_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(user_id)) if user_id else app.config['UPLOAD_FOLDER']
     os.makedirs(user_folder, exist_ok=True)
