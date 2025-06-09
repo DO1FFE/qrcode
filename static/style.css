@@ -35,3 +35,8 @@ label.form-label {
 .text-muted {
   color: #eee !important;
 }
+
+/* Ensure button text is white for better visibility */
+.btn {
+  color: #fff !important;
+}
