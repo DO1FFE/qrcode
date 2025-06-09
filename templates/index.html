@@ -56,9 +56,9 @@
         <p class="card-text"><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
         <p class="card-text"><small class="text-muted">{{ qr.created_at_local.strftime('%d.%m.%Y %H:%M') }}</small></p>
         <div class="btn-group" role="group">
-          <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-outline-secondary btn-sm">PNG</a>
-          <a href="{{ url_for('download', qr_id=qr.id, fmt='jpg') }}" class="btn btn-outline-secondary btn-sm">JPG</a>
-          <a href="{{ url_for('download', qr_id=qr.id, fmt='svg') }}" class="btn btn-outline-secondary btn-sm">SVG</a>
+          <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-outline-light download-btn">PNG</a>
+          <a href="{{ url_for('download', qr_id=qr.id, fmt='jpg') }}" class="btn btn-outline-light download-btn">JPG</a>
+          <a href="{{ url_for('download', qr_id=qr.id, fmt='svg') }}" class="btn btn-outline-light download-btn">SVG</a>
         </div>
         <form method="post" action="{{ url_for('delete', qr_id=qr.id) }}" class="mt-2" onsubmit="return confirm('Löschen?');">
           <button class="btn btn-danger btn-sm">Löschen</button>

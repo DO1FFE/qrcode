@@ -466,12 +466,30 @@ def edit_user(user_id):
         return 'Unauthorized', 403
     user = User.query.get_or_404(user_id)
     if request.method == 'POST':
-        user.username = request.form.get('username')
+        new_username = request.form.get('username')
+        new_email = request.form.get('email')
+
+        if user.username != new_username and User.query.filter_by(username=new_username).first():
+            flash('Benutzername bereits vergeben')
+            return redirect(url_for('edit_user', user_id=user.id))
+
+        if user.email != new_email and User.query.filter_by(email=new_email).first():
+            flash('Email bereits vergeben')
+            return redirect(url_for('edit_user', user_id=user.id))
+
+        user.username = new_username
         user.name = request.form.get('name')
-        user.email = request.form.get('email')
+        user.email = new_email
         user.plan = request.form.get('plan')
         user.upgrade_method = request.form.get('upgrade_method')
-        db.session.commit()
+
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            flash('Fehler beim Speichern der Änderungen')
+            return redirect(url_for('edit_user', user_id=user.id))
+
         enforce_qrcode_limit(user)
         flash('Benutzer aktualisiert')
         return redirect(url_for('admin_panel'))
