@@ -198,8 +198,8 @@ def generate_qr_files(
     qr.box_size = max(1, max_pixels // qr.modules_count)
 
     drawer = RoundedModuleDrawer() if rounded else None
-    front = ImageColor.getcolor(color, "RGBA")
-    back = ImageColor.getcolor(bgcolor, "RGBA")
+    front = ImageColor.getcolor(color, "RGB")
+    back = ImageColor.getcolor(bgcolor, "RGB")
     img = qr.make_image(
         image_factory=StyledPilImage,
         module_drawer=drawer,
