@@ -41,7 +41,7 @@
   {% for qr in qrcodes %}
   <div class="col">
     <div class="card h-100">
-      <img src="{{ url_for('preview', qr_id=qr.id) }}" class="card-img-top" alt="QR-Code">
+      <img src="{{ url_for('preview', qr_id=qr.id) }}" class="card-img-top qr-preview" alt="QR-Code">
       <div class="card-body">
         <h5 class="card-title">{{ qr.description or 'QR Code' }}</h5>
         <p class="card-text"><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
