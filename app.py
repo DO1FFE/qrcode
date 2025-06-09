@@ -28,12 +28,18 @@ from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from qrcode.image.styles.colormasks import SolidFillColorMask
 import qrcode.image.svg
 from PIL import ImageColor
+import stripe
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/do1ffe/qrcode/database.db'
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'qrcodes')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Stripe configuration
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -44,6 +50,14 @@ PLAN_LIMITS = {
     'pro': 20,
     'premium': 50,
     'unlimited': None,
+}
+
+# Monthly prices in Euro cents for Stripe
+STRIPE_PRICES = {
+    'starter': 199,
+    'pro': 499,
+    'premium': 999,
+    'unlimited': 1999,
 }
 
 # Provide current year to templates
@@ -257,6 +271,50 @@ def cancel_subscription():
     current_user.upgrade_method = 'cancelled'
     db.session.commit()
     flash('Abo gekündigt. Dein Plan bleibt bis zum Ablauf der aktuellen Laufzeit aktiv.')
+    return redirect(url_for('profile'))
+
+
+@app.route('/create_checkout_session/<plan>', methods=['POST'])
+@login_required
+def create_checkout_session(plan):
+    if plan not in STRIPE_PRICES:
+        return 'Invalid plan', 400
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {'name': f'{plan.capitalize()} Plan'},
+                    'unit_amount': STRIPE_PRICES[plan],
+                    'recurring': {'interval': 'month'},
+                },
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=url_for('stripe_success', plan=plan, _external=True),
+            cancel_url=url_for('upgrade', _external=True),
+            customer_email=current_user.email,
+        )
+        return redirect(session.url)
+    except Exception as e:
+        print('Stripe error:', e)
+        flash('Fehler bei Stripe.')
+        return redirect(url_for('upgrade'))
+
+
+@app.route('/stripe_success/<plan>')
+@login_required
+def stripe_success(plan):
+    if plan not in PLAN_LIMITS:
+        return 'Invalid plan', 400
+    current_user.plan = plan
+    current_user.upgrade_method = 'stripe'
+    current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
+    current_user.plan_cancelled = False
+    db.session.commit()
+    enforce_qrcode_limit(current_user)
+    flash(f'{plan.capitalize()} Plan aktiviert!')
     return redirect(url_for('profile'))
 
 # Helper to generate qr code files
