@@ -515,6 +515,16 @@ def delete_user(user_id):
     flash('Benutzer gelöscht')
     return redirect(url_for('admin_panel'))
 
+
+@app.route('/impressum')
+def impressum():
+    return render_template('impressum.html')
+
+
+@app.route('/datenschutz')
+def privacy():
+    return render_template('datenschutz.html')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

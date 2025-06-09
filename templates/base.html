@@ -37,7 +37,9 @@
     {% block content %}{% endblock %}
 </div>
 <footer class="text-center mt-4 mb-3">
-    &copy; {{ current_year }} Erik Schauer
+    &copy; {{ current_year }} Erik Schauer –
+    <a href="{{ url_for('impressum') }}">Impressum</a> |
+    <a href="{{ url_for('privacy') }}">Datenschutzerklärung</a>
 </footer>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
