@@ -171,15 +171,30 @@ def profile():
         flash('Profil aktualisiert')
         return redirect(url_for('profile'))
     remaining = None
+    next_charge = None
     if current_user.plan_expires_at:
         remaining = current_user.plan_expires_at - datetime.utcnow()
-    return render_template('profile.html', remaining=remaining)
+        next_charge = current_user.plan_expires_at.astimezone(
+            ZoneInfo("Europe/Berlin")
+        )
+    return render_template(
+        'profile.html',
+        remaining=remaining,
+        next_charge=next_charge,
+    )
 
 
 @app.route('/upgrade', methods=['GET', 'POST'])
 @login_required
 def upgrade():
     if request.method == 'POST':
+        allow_new_plan = current_user.plan == 'basic' or (
+            current_user.plan_expires_at
+            and current_user.plan_expires_at <= datetime.utcnow()
+        )
+        if not allow_new_plan:
+            flash('Planwechsel erst nach Ablauf des aktuellen Plans möglich.')
+            return redirect(url_for('upgrade'))
         code = request.form.get('code', '').strip()
         if code == '2025STARTER':
             current_user.plan = 'starter'
@@ -215,7 +230,20 @@ def upgrade():
             flash('Unlimited Plan aktiviert!')
         else:
             flash('Ungültiger Code')
-    return render_template('upgrade.html')
+    allow_new_plan = current_user.plan == 'basic' or (
+        current_user.plan_expires_at
+        and current_user.plan_expires_at <= datetime.utcnow()
+    )
+    next_charge = None
+    if current_user.plan_expires_at:
+        next_charge = current_user.plan_expires_at.astimezone(
+            ZoneInfo("Europe/Berlin")
+        )
+    return render_template(
+        'upgrade.html',
+        allow_new_plan=allow_new_plan,
+        next_charge=next_charge,
+    )
 
 
 @app.route('/cancel_subscription')
