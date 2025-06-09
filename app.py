@@ -20,7 +20,6 @@ from flask_login import (
     UserMixin,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_dance.contrib.google import make_google_blueprint, google
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
@@ -50,13 +49,17 @@ PLAN_LIMITS = {
 def inject_current_year():
     return {'current_year': datetime.now().year}
 
+# Expose plan limits to templates
+@app.context_processor
+def inject_plan_limits():
+    return {'PLAN_LIMITS': PLAN_LIMITS}
+
 # Database
 
 db = SQLAlchemy(app)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    google_id = db.Column(db.String(255), unique=True)
     username = db.Column(db.String(255), unique=True)
     password_hash = db.Column(db.String(255))
     name = db.Column(db.String(255))
@@ -82,21 +85,22 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Google OAuth using Flask-Dance
-os.environ.setdefault('OAUTHLIB_INSECURE_TRANSPORT', '1')
-google_bp = make_google_blueprint(scope=['profile', 'email'])
-app.register_blueprint(google_bp, url_prefix='/login')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         if User.query.filter_by(username=username).first():
             flash('Benutzername bereits vergeben')
             return redirect(url_for('register'))
+        if User.query.filter_by(email=email).first():
+            flash('Email bereits vergeben')
+            return redirect(url_for('register'))
         user = User(
             username=username,
+            email=email,
             password_hash=generate_password_hash(password),
         )
         db.session.add(user)
@@ -121,30 +125,28 @@ def login():
         flash('Ungültige Anmeldedaten')
     return render_template('login.html')
 
-@app.route('/login/google')
-def login_google():
-    if not google.authorized:
-        return redirect(url_for('google.login'))
-    resp = google.get('/oauth2/v2/userinfo')
-    assert resp.ok, resp.text
-    info = resp.json()
-    user = User.query.filter_by(google_id=info['id']).first()
-    if not user:
-        user = User(
-            google_id=info['id'],
-            name=info.get('name'),
-            email=info.get('email'),
-        )
-        db.session.add(user)
-        db.session.commit()
-    login_user(user)
-    return redirect(url_for('index'))
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        current_user.username = request.form.get('username')
+        current_user.name = request.form.get('name')
+        current_user.email = request.form.get('email')
+        password = request.form.get('password')
+        if password:
+            current_user.password_hash = generate_password_hash(password)
+        db.session.commit()
+        flash('Profil aktualisiert')
+        return redirect(url_for('profile'))
+    return render_template('profile.html')
 
 
 @app.route('/upgrade', methods=['GET', 'POST'])
@@ -156,21 +158,25 @@ def upgrade():
             current_user.plan = 'starter'
             current_user.upgrade_method = f'code:{code}'
             db.session.commit()
+            enforce_qrcode_limit(current_user)
             flash('Starter Plan aktiviert!')
         elif code == '2025PRO':
             current_user.plan = 'pro'
             current_user.upgrade_method = f'code:{code}'
             db.session.commit()
+            enforce_qrcode_limit(current_user)
             flash('Pro Plan aktiviert!')
         elif code == '2025PREMIUM':
             current_user.plan = 'premium'
             current_user.upgrade_method = f'code:{code}'
             db.session.commit()
+            enforce_qrcode_limit(current_user)
             flash('Premium Plan aktiviert!')
         elif code == '2025UNLIMITED':
             current_user.plan = 'unlimited'
             current_user.upgrade_method = f'code:{code}'
             db.session.commit()
+            enforce_qrcode_limit(current_user)
             flash('Unlimited Plan aktiviert!')
         else:
             flash('Ungültiger Code')
@@ -225,6 +231,21 @@ def generate_qr_files(
         svg_img.save(f)
 
     return qr_id, png_path, jpg_path, svg_path
+
+
+def enforce_qrcode_limit(user):
+    limit = PLAN_LIMITS.get(user.plan)
+    if limit is None:
+        return
+    qrs = QRCode.query.filter_by(user_id=user.id).order_by(QRCode.id).all()
+    excess = len(qrs) - limit
+    if excess > 0:
+        for qr in qrs[:excess]:
+            for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
+                if path and os.path.exists(path):
+                    os.remove(path)
+            db.session.delete(qr)
+        db.session.commit()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -344,6 +365,7 @@ def edit_user(user_id):
         user.plan = request.form.get('plan')
         user.upgrade_method = request.form.get('upgrade_method')
         db.session.commit()
+        enforce_qrcode_limit(user)
         flash('Benutzer aktualisiert')
         return redirect(url_for('admin_panel'))
     return render_template('edit_user.html', user=user)

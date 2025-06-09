@@ -16,12 +16,12 @@
                 {% if current_user.username == 'DO1FFE' %}
                 <a class="btn btn-outline-warning me-2" href="{{ url_for('admin_panel') }}">Admin</a>
                 {% endif %}
+                <a class="btn btn-outline-secondary me-2" href="{{ url_for('profile') }}">Profil</a>
                 <a class="btn btn-outline-secondary me-2" href="{{ url_for('upgrade') }}">Upgrade</a>
                 <a class="btn btn-outline-secondary" href="{{ url_for('logout') }}">Logout</a>
             {% else %}
                 <a class="btn btn-outline-primary me-2" href="{{ url_for('login') }}">Login</a>
                 <a class="btn btn-outline-secondary me-2" href="{{ url_for('register') }}">Registrieren</a>
-                <a class="btn btn-outline-success" href="{{ url_for('login_google') }}">Login mit Google</a>
             {% endif %}
         </div>
     </div>

@@ -22,6 +22,7 @@
     <input type="hidden" name="src" value="1">
     <button class="btn btn-outline-primary">Starter für 1,99€/Monat</button>
   </form>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['starter'] }} QR-Codes</small>
 </div>
 <div class="mb-3">
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
@@ -35,6 +36,7 @@
     <input type="hidden" name="src" value="1">
     <button class="btn btn-outline-primary">Pro für 4,99€/Monat</button>
   </form>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['pro'] }} QR-Codes</small>
 </div>
 <div class="mb-3">
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
@@ -48,6 +50,7 @@
     <input type="hidden" name="src" value="1">
     <button class="btn btn-outline-primary">Premium für 9,99€/Monat</button>
   </form>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['premium'] }} QR-Codes</small>
 </div>
 <div>
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
@@ -61,5 +64,6 @@
     <input type="hidden" name="src" value="1">
     <button class="btn btn-outline-primary">Unlimited für 19,99€/Monat</button>
   </form>
+  <small class="text-muted">unbegrenzte QR-Codes</small>
 </div>
 {% endblock %}
