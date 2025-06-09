@@ -46,6 +46,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(255))
     email = db.Column(db.String(255), unique=True)
     plan = db.Column(db.String(20), default='basic')
+    upgrade_method = db.Column(db.String(20))
     qrcodes = db.relationship('QRCode', backref='user', lazy=True)
 
 class QRCode(db.Model):
@@ -126,18 +127,22 @@ def upgrade():
         code = request.form.get('code', '').strip()
         if code == '2025STARTER':
             current_user.plan = 'starter'
+            current_user.upgrade_method = f'code:{code}'
             db.session.commit()
             flash('Starter Plan aktiviert!')
         elif code == '2025PRO':
             current_user.plan = 'pro'
+            current_user.upgrade_method = f'code:{code}'
             db.session.commit()
             flash('Pro Plan aktiviert!')
         elif code == '2025PREMIUM':
             current_user.plan = 'premium'
+            current_user.upgrade_method = f'code:{code}'
             db.session.commit()
             flash('Premium Plan aktiviert!')
         elif code == '2025UNLIMITED':
             current_user.plan = 'unlimited'
+            current_user.upgrade_method = f'code:{code}'
             db.session.commit()
             flash('Unlimited Plan aktiviert!')
         else:
@@ -245,6 +250,55 @@ def delete(qr_id):
     db.session.commit()
     flash('QR-Code gelöscht')
     return redirect(url_for('index'))
+
+
+def is_admin():
+    return current_user.is_authenticated and (current_user.username == 'DO1FFE')
+
+
+@app.route('/admin')
+@login_required
+def admin_panel():
+    if not is_admin():
+        return 'Unauthorized', 403
+    users = User.query.all()
+    return render_template('admin.html', users=users)
+
+
+@app.route('/admin/user/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_user(user_id):
+    if not is_admin():
+        return 'Unauthorized', 403
+    user = User.query.get_or_404(user_id)
+    if request.method == 'POST':
+        user.username = request.form.get('username')
+        user.name = request.form.get('name')
+        user.email = request.form.get('email')
+        user.plan = request.form.get('plan')
+        user.upgrade_method = request.form.get('upgrade_method')
+        db.session.commit()
+        flash('Benutzer aktualisiert')
+        return redirect(url_for('admin_panel'))
+    return render_template('edit_user.html', user=user)
+
+
+@app.route('/admin/user/<int:user_id>/delete', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    if not is_admin():
+        return 'Unauthorized', 403
+    user = User.query.get_or_404(user_id)
+    # remove QR code files
+    for qr in user.qrcodes:
+        for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
+            if path and os.path.exists(path):
+                os.remove(path)
+        db.session.delete(qr)
+    db.session.delete(user)
+    db.session.commit()
+    flash('Benutzer gelöscht')
+    return redirect(url_for('admin_panel'))
 
 if __name__ == '__main__':
     with app.app_context():

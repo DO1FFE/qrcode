@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Benutzer bearbeiten</h1>
+<form method="post" style="max-width:400px;">
+  <div class="mb-3">
+    <label class="form-label">Benutzername</label>
+    <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Name</label>
+    <input type="text" class="form-control" name="name" value="{{ user.name }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-control" name="email" value="{{ user.email }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Plan</label>
+    <select class="form-select" name="plan">
+      <option value="basic" {% if user.plan=='basic' %}selected{% endif %}>basic</option>
+      <option value="starter" {% if user.plan=='starter' %}selected{% endif %}>starter</option>
+      <option value="pro" {% if user.plan=='pro' %}selected{% endif %}>pro</option>
+      <option value="premium" {% if user.plan=='premium' %}selected{% endif %}>premium</option>
+      <option value="unlimited" {% if user.plan=='unlimited' %}selected{% endif %}>unlimited</option>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Upgrade Methode</label>
+    <input type="text" class="form-control" name="upgrade_method" value="{{ user.upgrade_method }}">
+  </div>
+  <button class="btn btn-primary" type="submit">Speichern</button>
+</form>
+{% endblock %}
