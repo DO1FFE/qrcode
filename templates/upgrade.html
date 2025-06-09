@@ -2,7 +2,18 @@
 {% block content %}
 <h1>Upgrade</h1>
 <p>Nutz deinen Rabattcode oder wähle einen kostenpflichtigen Plan.</p>
+{% if current_user.plan != 'basic' and next_charge %}
+  {% if current_user.plan_cancelled %}
+    <p class="text-muted">Aktueller Plan endet am {{ next_charge.strftime('%d.%m.%Y') }}.</p>
+  {% else %}
+    <p class="text-muted">Nächste Abbuchung am {{ next_charge.strftime('%d.%m.%Y') }}.</p>
+  {% endif %}
+{% endif %}
 <p class="text-muted">Um den Plan zu wechseln, kündige zuerst das bestehende PayPal-Abo und wähle danach einen neuen Plan.</p>
+{% if not allow_new_plan %}
+<div class="alert alert-warning">Du kannst einen neuen Plan erst nach Ablauf deines aktuellen Plans auswählen.</div>
+{% endif %}
+{% if allow_new_plan %}
 <form method="post" class="mb-4" style="max-width:400px;">
   <div class="mb-3">
     <label class="form-label">Rabattcode</label>
@@ -72,4 +83,5 @@
   </form>
   <small class="text-muted">unbegrenzte QR-Codes – monatliches Abo</small>
 </div>
+{% endif %}
 {% endblock %}
