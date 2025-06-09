@@ -39,5 +39,21 @@
 <footer class="text-center mt-4 mb-3">
     &copy; {{ current_year }} Erik Schauer
 </footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.classList.add('page-loaded');
+  document.querySelectorAll('a[href]').forEach(a => {
+    if (a.target === '_blank' || a.getAttribute('href').startsWith('#')) return;
+    a.addEventListener('click', e => {
+      if (e.ctrlKey || e.metaKey) return;
+      e.preventDefault();
+      document.body.classList.remove('page-loaded');
+      setTimeout(() => {
+        window.location.href = a.href;
+      }, 300);
+    });
+  });
+});
+</script>
 </body>
 </html>
