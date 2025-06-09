@@ -114,6 +114,7 @@ def check_plan_expiration():
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
+        name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
         if User.query.filter_by(username=username).first():
@@ -124,6 +125,7 @@ def register():
             return redirect(url_for('register'))
         user = User(
             username=username,
+            name=name,
             email=email,
             password_hash=generate_password_hash(password),
         )

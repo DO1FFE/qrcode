@@ -12,7 +12,7 @@
         <a class="navbar-brand" href="{{ url_for('index') }}">QR-Code</a>
         <div class="d-flex">
             {% if current_user.is_authenticated %}
-                <span class="navbar-text me-2 text-white">{{ current_user.name or current_user.username }} – {{ current_user.plan|capitalize }}</span>
+                <span class="navbar-text me-2 text-white">{{ current_user.username }} – {{ current_user.plan|capitalize }}</span>
                 {% if current_user.username == 'DO1FFE' %}
                 <a class="btn btn-outline-warning me-2" href="{{ url_for('admin_panel') }}">Admin</a>
                 {% endif %}
