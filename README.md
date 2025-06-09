@@ -22,3 +22,4 @@ Es gibt mehrere Abomodelle:
 - **Unlimited** – 19,99€/Monat für unbegrenzte QR-Codes
 
 Die Bezahlung erfolgt über PayPal an `do1ffe@darc.de`.
+Möchtest du deinen Plan wechseln, kündige zunächst das bestehende PayPal-Abo und wähle anschließend ein neues Modell.
