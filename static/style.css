@@ -24,3 +24,8 @@ label.form-label {
 .download-btn {
   font-weight: 600;
 }
+
+/* Lighten muted text for better readability on dark background */
+.text-muted {
+  color: #bbb !important;
+}

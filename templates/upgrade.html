@@ -33,7 +33,18 @@
     <input type="hidden" name="t3" value="M">
     <input type="hidden" name="src" value="1">
     <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Starter für 1,99€/Monat</button>
-    {% if current_user.plan == 'starter' %}<span class="badge bg-primary ms-2">Aktueller Plan</span>{% endif %}
+    {% if current_user.plan == 'starter' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% if next_charge %}
+      <span class="ms-2 text-muted">
+        {% if current_user.plan_cancelled %}
+          Plan endet am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% else %}
+          Nächste Abbuchung am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% endif %}
+      </span>
+    {% endif %}
+    {% endif %}
   </form>
   <small class="text-muted">bis zu {{ PLAN_LIMITS['starter'] }} QR-Codes – monatliches Abo</small>
 </div>
@@ -48,7 +59,18 @@
     <input type="hidden" name="t3" value="M">
     <input type="hidden" name="src" value="1">
     <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Pro für 4,99€/Monat</button>
-    {% if current_user.plan == 'pro' %}<span class="badge bg-primary ms-2">Aktueller Plan</span>{% endif %}
+    {% if current_user.plan == 'pro' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% if next_charge %}
+      <span class="ms-2 text-muted">
+        {% if current_user.plan_cancelled %}
+          Plan endet am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% else %}
+          Nächste Abbuchung am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% endif %}
+      </span>
+    {% endif %}
+    {% endif %}
   </form>
   <small class="text-muted">bis zu {{ PLAN_LIMITS['pro'] }} QR-Codes – monatliches Abo</small>
 </div>
@@ -63,7 +85,18 @@
     <input type="hidden" name="t3" value="M">
     <input type="hidden" name="src" value="1">
     <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Premium für 9,99€/Monat</button>
-    {% if current_user.plan == 'premium' %}<span class="badge bg-primary ms-2">Aktueller Plan</span>{% endif %}
+    {% if current_user.plan == 'premium' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% if next_charge %}
+      <span class="ms-2 text-muted">
+        {% if current_user.plan_cancelled %}
+          Plan endet am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% else %}
+          Nächste Abbuchung am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% endif %}
+      </span>
+    {% endif %}
+    {% endif %}
   </form>
   <small class="text-muted">bis zu {{ PLAN_LIMITS['premium'] }} QR-Codes – monatliches Abo</small>
 </div>
@@ -78,7 +111,18 @@
     <input type="hidden" name="t3" value="M">
     <input type="hidden" name="src" value="1">
     <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Unlimited für 19,99€/Monat</button>
-    {% if current_user.plan == 'unlimited' %}<span class="badge bg-primary ms-2">Aktueller Plan</span>{% endif %}
+    {% if current_user.plan == 'unlimited' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% if next_charge %}
+      <span class="ms-2 text-muted">
+        {% if current_user.plan_cancelled %}
+          Plan endet am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% else %}
+          Nächste Abbuchung am {{ next_charge.strftime('%d.%m.%Y') }}
+        {% endif %}
+      </span>
+    {% endif %}
+    {% endif %}
   </form>
   <small class="text-muted">unbegrenzte QR-Codes – monatliches Abo</small>
 </div>
