@@ -8,7 +8,7 @@ from flask import (
     send_from_directory,
     flash,
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
@@ -21,6 +21,7 @@ from flask_login import (
     UserMixin,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
+import requests
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
@@ -67,6 +68,9 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(255), unique=True)
     plan = db.Column(db.String(20), default='basic')
     upgrade_method = db.Column(db.String(20))
+    paypal_subscription_id = db.Column(db.String(255))
+    plan_expires_at = db.Column(db.DateTime(timezone=True))
+    plan_cancelled = db.Column(db.Boolean, default=False)
     qrcodes = db.relationship('QRCode', backref='user', lazy=True)
 
 class QRCode(db.Model):
@@ -90,6 +94,20 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+@app.before_request
+def check_plan_expiration():
+    if current_user.is_authenticated and current_user.plan != 'basic':
+        if (
+            current_user.plan_cancelled
+            and current_user.plan_expires_at
+            and current_user.plan_expires_at <= datetime.utcnow()
+        ):
+            current_user.plan = 'basic'
+            current_user.plan_cancelled = False
+            current_user.paypal_subscription_id = None
+            db.session.commit()
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -152,7 +170,10 @@ def profile():
         db.session.commit()
         flash('Profil aktualisiert')
         return redirect(url_for('profile'))
-    return render_template('profile.html')
+    remaining = None
+    if current_user.plan_expires_at:
+        remaining = current_user.plan_expires_at - datetime.utcnow()
+    return render_template('profile.html', remaining=remaining)
 
 
 @app.route('/upgrade', methods=['GET', 'POST'])
@@ -163,24 +184,32 @@ def upgrade():
         if code == '2025STARTER':
             current_user.plan = 'starter'
             current_user.upgrade_method = f'code:{code}'
+            current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
+            current_user.plan_cancelled = False
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Starter Plan aktiviert!')
         elif code == '2025PRO':
             current_user.plan = 'pro'
             current_user.upgrade_method = f'code:{code}'
+            current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
+            current_user.plan_cancelled = False
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Pro Plan aktiviert!')
         elif code == '2025PREMIUM':
             current_user.plan = 'premium'
             current_user.upgrade_method = f'code:{code}'
+            current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
+            current_user.plan_cancelled = False
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Premium Plan aktiviert!')
         elif code == '2025UNLIMITED':
             current_user.plan = 'unlimited'
             current_user.upgrade_method = f'code:{code}'
+            current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
+            current_user.plan_cancelled = False
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Unlimited Plan aktiviert!')
@@ -192,11 +221,12 @@ def upgrade():
 @app.route('/cancel_subscription')
 @login_required
 def cancel_subscription():
-    current_user.plan = 'basic'
+    if current_user.paypal_subscription_id:
+        cancel_paypal_subscription(current_user.paypal_subscription_id)
+    current_user.plan_cancelled = True
     current_user.upgrade_method = 'cancelled'
     db.session.commit()
-    enforce_qrcode_limit(current_user)
-    flash('Abo gekündigt. BASIC-Plan aktiviert.')
+    flash('Abo gekündigt. Dein Plan bleibt bis zum Ablauf der aktuellen Laufzeit aktiv.')
     return redirect(url_for('profile'))
 
 # Helper to generate qr code files
@@ -263,6 +293,33 @@ def enforce_qrcode_limit(user):
                     os.remove(path)
             db.session.delete(qr)
         db.session.commit()
+
+
+def cancel_paypal_subscription(sub_id):
+    client_id = os.environ.get('PAYPAL_CLIENT_ID')
+    client_secret = os.environ.get('PAYPAL_CLIENT_SECRET')
+    base_url = os.environ.get('PAYPAL_BASE_URL', 'https://api-m.paypal.com')
+    if not (client_id and client_secret):
+        return
+    try:
+        auth = requests.post(
+            f"{base_url}/v1/oauth2/token",
+            headers={"Accept": "application/json"},
+            data={"grant_type": "client_credentials"},
+            auth=(client_id, client_secret),
+        )
+        auth.raise_for_status()
+        token = auth.json().get("access_token")
+        requests.post(
+            f"{base_url}/v1/billing/subscriptions/{sub_id}/cancel",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            json={"reason": "User cancellation"},
+        )
+    except Exception as e:
+        print("Failed to cancel PayPal subscription:", e)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -424,6 +481,26 @@ if __name__ == '__main__':
                     text(
                         'ALTER TABLE user ADD COLUMN upgrade_method '
                         'VARCHAR(20)'
+                    )
+                )
+            if 'paypal_subscription_id' not in columns:
+                conn.execute(
+                    text(
+                        'ALTER TABLE user ADD COLUMN paypal_subscription_id '
+                        'VARCHAR(255)'
+                    )
+                )
+            if 'plan_expires_at' not in columns:
+                conn.execute(
+                    text(
+                        'ALTER TABLE user ADD COLUMN plan_expires_at DATETIME'
+                    )
+                )
+            if 'plan_cancelled' not in columns:
+                conn.execute(
+                    text(
+                        'ALTER TABLE user ADD COLUMN plan_cancelled BOOLEAN '
+                        'DEFAULT 0'
                     )
                 )
             result = conn.execute(text('PRAGMA table_info(qr_code)'))
