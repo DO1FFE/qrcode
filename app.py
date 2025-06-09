@@ -180,7 +180,6 @@ def upgrade():
 
 def generate_qr_files(
     url,
-    size=10,
     color='black',
     bgcolor='white',
     rounded=False,
@@ -188,11 +187,15 @@ def generate_qr_files(
 ):
     qr = qrcode.QRCode(
         error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=size,
+        box_size=1,
         border=4,
     )
     qr.add_data(url)
     qr.make(fit=True)
+
+    # Adjust box size so the final image fits within 400px.
+    max_pixels = 400
+    qr.box_size = max(1, max_pixels // qr.modules_count)
 
     drawer = RoundedModuleDrawer() if rounded else None
     front = ImageColor.getcolor(color, "RGBA")
@@ -234,14 +237,12 @@ def index():
             flash('Limit für deinen Plan erreicht.')
             return redirect(url_for('index'))
         url_input = request.form.get('url')
-        size = int(request.form.get('size', 10))
         color = request.form.get('color', 'black')
         bgcolor = request.form.get('bgcolor', 'white')
         rounded = request.form.get('rounded') == 'on'
         description = request.form.get('description')
         qr_id, png_path, jpg_path, svg_path = generate_qr_files(
             url_input,
-            size=size,
             color=color,
             bgcolor=bgcolor,
             rounded=rounded,

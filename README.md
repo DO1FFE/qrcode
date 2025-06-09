@@ -6,6 +6,7 @@ Die Anwendung nutzt ein modernes Design auf Basis von Bootswatch.
 - Anmeldung über Google OAuth
 - Registrierung und Login per Benutzername und Passwort
 - Generieren von QR-Codes mit Farbe, Hintergrundfarbe und runden Ecken
+- Größe der QR-Codes passt sich automatisch dem Inhalt an
 - QR-Codes werden pro Benutzer gespeichert
 - Download als PNG, JPG oder SVG
 - Zu jedem QR-Code kann eine kurze Beschreibung hinterlegt werden
