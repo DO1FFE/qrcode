@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_dance.contrib.google import make_google_blueprint, google
-from flask_wtf import CSRFProtect
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
@@ -38,7 +37,6 @@ def inject_current_year():
 # Database
 
 db = SQLAlchemy(app)
-csrf = CSRFProtect(app)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
