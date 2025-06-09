@@ -31,7 +31,7 @@ from PIL import ImageColor
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/do1ffe/qrcode/database.db'
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'qrcodes')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
