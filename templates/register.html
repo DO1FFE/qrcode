@@ -2,6 +2,7 @@
 {% block content %}
 <h1>Registrieren</h1>
 <form method="post" class="mb-3" style="max-width:400px;">
+  {{ csrf_token() }}
   <div class="mb-3">
     <label class="form-label">Benutzername</label>
     <input type="text" class="form-control" name="username" required>

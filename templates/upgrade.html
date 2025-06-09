@@ -3,6 +3,7 @@
 <h1>Upgrade</h1>
 <p>Nutz deinen Rabattcode oder wähle einen kostenpflichtigen Plan.</p>
 <form method="post" class="mb-4" style="max-width:400px;">
+  {{ csrf_token() }}
   <div class="mb-3">
     <label class="form-label">Rabattcode</label>
     <input type="text" class="form-control" name="code">
