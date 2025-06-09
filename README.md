@@ -27,11 +27,4 @@ Möchtest du deinen Plan wechseln, kündige zunächst das bestehende Abo und wä
 ## Konfiguration
 
 Die Anwendung erwartet die Stripe-API-Schlüssel in den Umgebungsvariablen
-`STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY`. Falls diese nicht gesetzt
-sind, werden sie beim Start automatisch aus der Datei `static/STRIPE.KEY`
-geladen. Das Dateiformat entspricht einfachen `KEY=WERT`-Zeilen, z.B.:
-
-```
-STRIPE_PUBLISHABLE_KEY=dein_publishable_key
-STRIPE_SECRET_KEY=dein_secret_key
-```
+`STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY`.

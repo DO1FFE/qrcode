@@ -31,23 +31,8 @@ from PIL import ImageColor
 import stripe
 
 
-def load_stripe_keys_from_file(path="static/STRIPE.KEY"):
-    """Load Stripe API keys from a file if environment variables are unset."""
-    if os.environ.get("STRIPE_SECRET_KEY") and os.environ.get("STRIPE_PUBLISHABLE_KEY"):
-        return
-    if not os.path.exists(path):
-        return
-    with open(path) as f:
-        for line in f:
-            if "=" not in line:
-                continue
-            key, value = line.strip().split("=", 1)
-            os.environ.setdefault(key, value)
-
-
 
 app = Flask(__name__)
-load_stripe_keys_from_file()
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/do1ffe/qrcode/database.db'
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'qrcodes')
