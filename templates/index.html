@@ -2,6 +2,7 @@
 {% block content %}
 <h1>QR-Code Generator</h1>
 <form method="post" class="row g-3 mb-4">
+  {{ csrf_token() }}
   <div class="col-md-6">
     <label class="form-label">URL</label>
     <input type="text" class="form-control" name="url" required>
@@ -36,30 +37,28 @@
 
 {% if qrcodes %}
 <h2>Meine QR-Codes</h2>
-<table class="table">
-  <thead>
-    <tr><th>Vorschau</th><th>URL</th><th>Beschreibung</th><th>Downloads</th><th></th></tr>
-  </thead>
-  <tbody>
+<div class="row row-cols-1 row-cols-md-3 g-4">
   {% for qr in qrcodes %}
-    <tr>
-      <td><img src="{{ url_for('preview', qr_id=qr.id) }}" style="width:100px;height:100px;object-fit:contain"></td>
-      <td>{{ qr.url }}</td>
-      <td>{{ qr.description }}</td>
-      <td>
-        <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-sm btn-outline-secondary">PNG</a>
-        <a href="{{ url_for('download', qr_id=qr.id, fmt='jpg') }}" class="btn btn-sm btn-outline-secondary">JPG</a>
-        <a href="{{ url_for('download', qr_id=qr.id, fmt='svg') }}" class="btn btn-sm btn-outline-secondary">SVG</a>
-      </td>
-      <td>
-        <form method="post" action="{{ url_for('delete', qr_id=qr.id) }}" onsubmit="return confirm('Löschen?');">
-          <button class="btn btn-sm btn-danger">Löschen</button>
+  <div class="col">
+    <div class="card h-100">
+      <img src="{{ url_for('preview', qr_id=qr.id) }}" class="card-img-top" alt="QR-Code">
+      <div class="card-body">
+        <h5 class="card-title">{{ qr.description or 'QR Code' }}</h5>
+        <p class="card-text"><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
+        <div class="btn-group" role="group">
+          <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-outline-secondary btn-sm">PNG</a>
+          <a href="{{ url_for('download', qr_id=qr.id, fmt='jpg') }}" class="btn btn-outline-secondary btn-sm">JPG</a>
+          <a href="{{ url_for('download', qr_id=qr.id, fmt='svg') }}" class="btn btn-outline-secondary btn-sm">SVG</a>
+        </div>
+        <form method="post" action="{{ url_for('delete', qr_id=qr.id) }}" class="mt-2" onsubmit="return confirm('Löschen?');">
+          {{ csrf_token() }}
+          <button class="btn btn-danger btn-sm">Löschen</button>
         </form>
-      </td>
-    </tr>
+      </div>
+    </div>
+  </div>
   {% endfor %}
-  </tbody>
-</table>
+</div>
 {% endif %}
 
 {% endblock %}

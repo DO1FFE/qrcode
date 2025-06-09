@@ -1,5 +1,6 @@
 # qrcode
 Ein einfacher QR-Code Generator als Flask-Webanwendung.
+Die Anwendung nutzt CSRF-Schutz und ein modernes Design auf Basis von Bootswatch.
 
 ## Funktionen
 - Anmeldung über Google OAuth

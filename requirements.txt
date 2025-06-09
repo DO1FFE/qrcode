@@ -4,3 +4,4 @@ flask_login
 flask_dance
 qrcode[pil]
 Pillow
+flask_wtf
