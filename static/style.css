@@ -1,5 +1,11 @@
-body {background-color: #e8f8f5; color: #000;}
-footer {font-size: 0.9rem; color: #666;}
+body {
+  background-color: #222;
+  color: #fff;
+}
+footer {
+  font-size: 0.9rem;
+  color: #ccc;
+}
 
 .qr-preview {
   width: 25%;
