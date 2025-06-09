@@ -2,7 +2,6 @@
 {% block content %}
 <h1>QR-Code Generator</h1>
 <form method="post" class="row g-3 mb-4">
-  {{ csrf_token() }}
   <div class="col-md-6">
     <label class="form-label">URL</label>
     <input type="text" class="form-control" name="url" required>
@@ -51,7 +50,6 @@
           <a href="{{ url_for('download', qr_id=qr.id, fmt='svg') }}" class="btn btn-outline-secondary btn-sm">SVG</a>
         </div>
         <form method="post" action="{{ url_for('delete', qr_id=qr.id) }}" class="mt-2" onsubmit="return confirm('Löschen?');">
-          {{ csrf_token() }}
           <button class="btn btn-danger btn-sm">Löschen</button>
         </form>
       </div>
