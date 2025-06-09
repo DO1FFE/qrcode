@@ -126,4 +126,43 @@
   </form>
   <small class="text-muted">unbegrenzte QR-Codes – monatliches Abo</small>
 </div>
+
+<h2 class="mt-4">Bezahlen mit Stripe</h2>
+<p class="text-muted">Unterstützt Kreditkarte, Apple Pay und Google Pay.</p>
+<div class="mb-3 plan-card">
+  <form action="{{ url_for('create_checkout_session', plan='starter') }}" method="post">
+    <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Starter für 1,99€/Monat</button>
+    {% if current_user.plan == 'starter' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% endif %}
+  </form>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['starter'] }} QR-Codes – monatliches Abo</small>
+</div>
+<div class="mb-3 plan-card">
+  <form action="{{ url_for('create_checkout_session', plan='pro') }}" method="post">
+    <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Pro für 4,99€/Monat</button>
+    {% if current_user.plan == 'pro' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% endif %}
+  </form>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['pro'] }} QR-Codes – monatliches Abo</small>
+</div>
+<div class="mb-3 plan-card">
+  <form action="{{ url_for('create_checkout_session', plan='premium') }}" method="post">
+    <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Premium für 9,99€/Monat</button>
+    {% if current_user.plan == 'premium' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% endif %}
+  </form>
+  <small class="text-muted">bis zu {{ PLAN_LIMITS['premium'] }} QR-Codes – monatliches Abo</small>
+</div>
+<div class="plan-card">
+  <form action="{{ url_for('create_checkout_session', plan='unlimited') }}" method="post">
+    <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Unlimited für 19,99€/Monat</button>
+    {% if current_user.plan == 'unlimited' %}
+    <span class="badge bg-primary ms-2">Aktueller Plan</span>
+    {% endif %}
+  </form>
+  <small class="text-muted">unbegrenzte QR-Codes – monatliches Abo</small>
+</div>
 {% endblock %}

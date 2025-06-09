@@ -4,3 +4,4 @@ flask_login
 qrcode[pil]
 Pillow
 requests
+stripe
