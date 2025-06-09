@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>QR-Code Generator</h1>
+<form method="post" class="row g-3 mb-4">
+  <div class="col-md-6">
+    <label class="form-label">URL</label>
+    <input type="text" class="form-control" name="url" required>
+  </div>
+  <div class="col-md-2">
+    <label class="form-label">Größe</label>
+    <input type="number" class="form-control" name="size" value="10" min="1" max="20">
+  </div>
+  <div class="col-md-2">
+    <label class="form-label">Farbe</label>
+    <input type="color" class="form-control form-control-color" name="color" value="#000000">
+  </div>
+  <div class="col-md-2">
+    <label class="form-label">Hintergrund</label>
+    <input type="color" class="form-control form-control-color" name="bgcolor" value="#ffffff">
+  </div>
+  <div class="col-md-12">
+    <label class="form-label">Beschreibung</label>
+    <input type="text" class="form-control" name="description">
+  </div>
+  <div class="col-md-12 form-check">
+    <input class="form-check-input" type="checkbox" name="rounded" id="rounded">
+    <label class="form-check-label" for="rounded">Runde Ecken</label>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary" {% if limit_reached %}disabled{% endif %}>Erstellen</button>
+  </div>
+</form>
+{% if limit_reached %}
+<div class="alert alert-warning">Limit erreicht. <a href="{{ url_for('upgrade') }}">Upgrade</a> notwendig.</div>
+{% endif %}
+
+{% if qrcodes %}
+<h2>Meine QR-Codes</h2>
+<table class="table">
+  <thead>
+    <tr><th>Vorschau</th><th>URL</th><th>Beschreibung</th><th>Downloads</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for qr in qrcodes %}
+    <tr>
+      <td><img src="{{ url_for('preview', qr_id=qr.id) }}" style="width:100px;height:100px;object-fit:contain"></td>
+      <td>{{ qr.url }}</td>
+      <td>{{ qr.description }}</td>
+      <td>
+        <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-sm btn-outline-secondary">PNG</a>
+        <a href="{{ url_for('download', qr_id=qr.id, fmt='jpg') }}" class="btn btn-sm btn-outline-secondary">JPG</a>
+        <a href="{{ url_for('download', qr_id=qr.id, fmt='svg') }}" class="btn btn-sm btn-outline-secondary">SVG</a>
+      </td>
+      <td>
+        <form method="post" action="{{ url_for('delete', qr_id=qr.id) }}" onsubmit="return confirm('Löschen?');">
+          <button class="btn btn-sm btn-danger">Löschen</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% endblock %}
