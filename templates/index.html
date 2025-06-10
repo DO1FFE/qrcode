@@ -122,6 +122,7 @@
 {% endif %}
 
 {% endblock %}
+{% block scripts %}
 <script>
 function updateFields() {
   const type = document.getElementById('data_type').value;
@@ -137,3 +138,4 @@ function updateFields() {
 document.getElementById('data_type').addEventListener('change', updateFields);
 document.addEventListener('DOMContentLoaded', updateFields);
 </script>
+{% endblock %}
