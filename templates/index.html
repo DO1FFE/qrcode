@@ -13,7 +13,7 @@
 {% endif %}
 {% if not current_user.is_authenticated %}
 <div class="alert alert-info">
-    Bitte <a href="{{ url_for('login') }}">einloggen</a>, um QR-Codes zu erstellen und Vorschauen anzuzeigen.
+    Bitte <a href="{{ url_for('login') }}">logg dich ein</a>, um QR-Codes zu erstellen und Vorschauen anzuzeigen.
 </div>
 {% endif %}
 <form method="post" class="row g-3 mb-4">
