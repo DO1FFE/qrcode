@@ -649,6 +649,18 @@ def admin_stats_data():
     monthly_subs = db.session.query(func.count(Payment.id)).filter(Payment.period == 'month').scalar() or 0
     yearly_subs = db.session.query(func.count(Payment.id)).filter(Payment.period == 'year').scalar() or 0
 
+    total_users = User.query.count()
+    total_qrcodes = QRCode.query.count()
+    total_revenue = db.session.query(func.sum(Payment.amount)).scalar() or 0
+    active_subs = db.session.query(func.count(User.id)).filter(
+        User.plan != 'basic',
+        User.plan_cancelled.is_(False),
+        User.plan_expires_at > datetime.utcnow(),
+    ).scalar() or 0
+    plan_counts = dict(
+        db.session.query(User.plan, func.count(User.id)).group_by(User.plan).all()
+    )
+
     return {
         'hours': day_labels,
         'user_counts': user_counts,
@@ -656,6 +668,11 @@ def admin_stats_data():
         'monthly_subs': monthly_subs,
         'yearly_subs': yearly_subs,
         'month_revenue': month_revenue / 100.0,
+        'total_users': total_users,
+        'total_qrcodes': total_qrcodes,
+        'total_revenue': total_revenue / 100.0,
+        'active_subs': active_subs,
+        'plan_counts': plan_counts,
     }
 
 

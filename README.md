@@ -38,3 +38,6 @@ Die Anwendung erwartet die Stripe-API-Schlüssel in den Umgebungsvariablen
 `STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY`.
 
 Generierte QR-Code-Bilder werden im Verzeichnis `qrcodes/` gespeichert.
+
+Die Admin-Statistikseite zeigt neben den bisherigen Zeitreihendiagrammen nun auch
+Gesamtzahlen, den Gesamtumsatz sowie die Verteilung der Pläne der Nutzer.
