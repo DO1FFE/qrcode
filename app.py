@@ -153,6 +153,7 @@ class User(UserMixin, db.Model):
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(2048))
+    data_type = db.Column(db.String(20), default='url')
     description = db.Column(db.String(255))
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     png_path = db.Column(db.String(255))
@@ -553,21 +554,44 @@ def index():
         if limit is not None and len(current_user.qrcodes) >= limit:
             flash('Limit für deinen Plan erreicht.')
             return redirect(url_for('index'))
-        url_input = request.form.get('url')
+        data_type = request.form.get('data_type', 'url')
+        if data_type == 'url':
+            data_input = request.form.get('url')
+        elif data_type == 'text':
+            data_input = request.form.get('text')
+        elif data_type == 'email':
+            data_input = 'mailto:' + request.form.get('email', '')
+        elif data_type == 'phone':
+            data_input = 'tel:' + request.form.get('phone', '')
+        elif data_type == 'sms':
+            phone = request.form.get('sms_phone', '')
+            msg = request.form.get('sms_message', '')
+            data_input = f'SMSTO:{phone}:{msg}'
+        elif data_type == 'contact':
+            name = request.form.get('contact_name', '')
+            phone = request.form.get('contact_phone', '')
+            email = request.form.get('contact_email', '')
+            data_input = (
+                'BEGIN:VCARD\nVERSION:3.0\n'
+                f'FN:{name}\nTEL:{phone}\nEMAIL:{email}\nEND:VCARD'
+            )
+        else:
+            data_input = request.form.get('url')
         color = request.form.get('color', 'black')
         bgcolor = request.form.get('bgcolor', 'white')
         rounded = request.form.get('rounded') == 'on'
         description = request.form.get('description')
         try:
             qr_id, png_path, jpg_path, svg_path = generate_qr_files(
-                url_input,
+                data_input,
                 color=color,
                 bgcolor=bgcolor,
                 rounded=rounded,
                 user_id=current_user.id,
             )
             qr = QRCode(
-                url=url_input,
+                url=data_input,
+                data_type=data_type,
                 description=description,
                 png_path=png_path,
                 jpg_path=jpg_path,
@@ -946,6 +970,8 @@ if __name__ == '__main__':
             if 'created_at' not in qr_columns:
                 conn.execute(text('ALTER TABLE qr_code ADD COLUMN created_at DATETIME'))
                 conn.execute(text("UPDATE qr_code SET created_at = CURRENT_TIMESTAMP"))
+            if 'data_type' not in qr_columns:
+                conn.execute(text("ALTER TABLE qr_code ADD COLUMN data_type VARCHAR(20) DEFAULT 'url'"))
             result = conn.execute(text('PRAGMA table_info(payment)'))
             payment_columns = [row[1] for row in result]
             if not payment_columns:
