@@ -18,8 +18,45 @@
 {% endif %}
 <form method="post" class="row g-3 mb-4">
   <div class="col-md-6">
+    <label class="form-label">Typ</label>
+    <select class="form-select" name="data_type" id="data_type">
+      <option value="url">URL</option>
+      <option value="text">Text</option>
+      <option value="email">Email</option>
+      <option value="phone">Telefon</option>
+      <option value="sms">SMS</option>
+      <option value="contact">Kontaktdaten</option>
+    </select>
+  </div>
+  <div class="col-md-6 data-field data-url">
     <label class="form-label">URL</label>
-    <input type="text" class="form-control" name="url" required>
+    <input type="text" class="form-control" name="url">
+  </div>
+  <div class="col-md-6 data-field data-text d-none">
+    <label class="form-label">Text</label>
+    <input type="text" class="form-control" name="text">
+  </div>
+  <div class="col-md-6 data-field data-email d-none">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-control" name="email">
+  </div>
+  <div class="col-md-6 data-field data-phone d-none">
+    <label class="form-label">Telefon</label>
+    <input type="text" class="form-control" name="phone">
+  </div>
+  <div class="col-md-6 data-field data-sms d-none">
+    <label class="form-label">Telefon</label>
+    <input type="text" class="form-control" name="sms_phone">
+    <label class="form-label mt-1">Nachricht</label>
+    <input type="text" class="form-control" name="sms_message">
+  </div>
+  <div class="col-md-12 data-field data-contact d-none">
+    <label class="form-label">Name</label>
+    <input type="text" class="form-control mb-2" name="contact_name">
+    <label class="form-label">Telefon</label>
+    <input type="text" class="form-control mb-2" name="contact_phone">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-control" name="contact_email">
   </div>
   <div class="col-md-2">
     <label class="form-label">Farbe</label>
@@ -63,7 +100,11 @@
       <img src="{{ url_for('preview', qr_id=qr.id) }}" class="card-img-top qr-preview" alt="QR-Code">
       <div class="card-body">
         <h5 class="card-title">{{ qr.description or 'QR Code' }}</h5>
+        {% if qr.data_type == 'url' %}
         <p class="card-text"><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
+        {% else %}
+        <p class="card-text">{{ qr.url }}</p>
+        {% endif %}
         <p class="card-text"><small class="text-muted">{{ qr.created_at_local.strftime('%d.%m.%Y %H:%M') }}</small></p>
         <div class="btn-group" role="group">
           <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-outline-light download-btn">PNG</a>
@@ -81,3 +122,18 @@
 {% endif %}
 
 {% endblock %}
+<script>
+function updateFields() {
+  const type = document.getElementById('data_type').value;
+  document.querySelectorAll('.data-field').forEach(el => {
+    el.classList.add('d-none');
+    el.querySelectorAll('input').forEach(inp => (inp.required = false));
+  });
+  document.querySelectorAll('.data-' + type).forEach(el => {
+    el.classList.remove('d-none');
+    el.querySelectorAll('input').forEach(inp => (inp.required = true));
+  });
+}
+document.getElementById('data_type').addEventListener('change', updateFields);
+document.addEventListener('DOMContentLoaded', updateFields);
+</script>
