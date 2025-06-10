@@ -9,7 +9,9 @@
     <p class="text-muted">Nächste Abbuchung am {{ next_charge.strftime('%d.%m.%Y') }}.</p>
   {% endif %}
 {% endif %}
-<p class="text-muted">Um den Plan zu wechseln, kündige zuerst das bestehende PayPal-Abo und wähle danach einen neuen Plan.</p>
+<p class="text-muted">Ein Upgrade von einem günstigeren auf einen teureren Plan ist jederzeit möglich. Die Restlaufzeit des bisherigen Plans wird anteilig gutgeschrieben und auf den neuen Preis angerechnet. Das vorherige Abonnement ist beim Zahlungsdienstleister zu kündigen.</p>
+<p class="text-muted mb-1">Ein Downgrade von einem höheren auf einen niedrigeren Plan ist nicht möglich.</p>
+<p class="text-muted">Eine Kündigung ist jederzeit möglich. Das Abo bleibt jedoch bis zum Ende der bezahlten Laufzeit bestehen; eine Rückerstattung erfolgt nicht.</p>
 {% if not allow_new_plan %}
 <div class="alert alert-warning">Du kannst einen neuen Plan erst nach Ablauf deines aktuellen Plans auswählen.</div>
 {% endif %}
@@ -25,14 +27,14 @@
 
 <div class="mb-3 plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Starter – 2,49€/Monat <span class="text-success">oder 20,92€/Jahr (30% sparen!)</span></div>
+    <div class="mb-2 fw-bold">Starter – 0,99€/Monat <span class="text-success">oder <s>11,88€</s> 8,32€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Starter Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="2.49">
+        <input type="hidden" name="a3" value="0.99">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
@@ -43,7 +45,7 @@
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Starter Plan (Jahr)">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="20.92">
+        <input type="hidden" name="a3" value="8.32">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">
@@ -76,14 +78,14 @@
 
 <div class="mb-3 plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Pro – 5,99€/Monat <span class="text-success">oder 50,32€/Jahr (30% sparen!)</span></div>
+    <div class="mb-2 fw-bold">Pro – 1,99€/Monat <span class="text-success">oder <s>23,88€</s> 16,72€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Pro Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="5.99">
+        <input type="hidden" name="a3" value="1.99">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
@@ -94,7 +96,7 @@
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Pro Plan (Jahr)">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="50.32">
+        <input type="hidden" name="a3" value="16.72">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">
@@ -127,14 +129,14 @@
 
 <div class="mb-3 plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Premium – 11,99€/Monat <span class="text-success">oder 100,72€/Jahr (30% sparen!)</span></div>
+    <div class="mb-2 fw-bold">Premium – 4,99€/Monat <span class="text-success">oder <s>59,88€</s> 41,92€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Premium Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="11.99">
+        <input type="hidden" name="a3" value="4.99">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
@@ -145,7 +147,7 @@
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Premium Plan (Jahr)">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="100.72">
+        <input type="hidden" name="a3" value="41.92">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">
@@ -178,14 +180,14 @@
 
 <div class="plan-card">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <div class="mb-2 fw-bold">Unlimited – 23,99€/Monat <span class="text-success">oder 201,52€/Jahr (30% sparen!)</span></div>
+    <div class="mb-2 fw-bold">Unlimited – 9,99€/Monat <span class="text-success">oder <s>119,88€</s> 83,92€/Jahr (30% sparen!)</span></div>
     <div>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Unlimited Plan">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="23.99">
+        <input type="hidden" name="a3" value="9.99">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
@@ -196,7 +198,7 @@
         <input type="hidden" name="business" value="do1ffe@darc.de">
         <input type="hidden" name="item_name" value="Unlimited Plan (Jahr)">
         <input type="hidden" name="currency_code" value="EUR">
-        <input type="hidden" name="a3" value="201.52">
+        <input type="hidden" name="a3" value="83.92">
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">

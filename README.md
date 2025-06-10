@@ -18,13 +18,19 @@ Es gibt mehrere Abomodelle:
 Bei jährlicher Zahlung sparst du **30%** auf den Gesamtpreis!
 
 - **Basic** – kostenlos, 1 gespeicherter QR-Code
-- **Starter** – 2,49€/Monat oder 20,92€/Jahr (**30% sparen!**) für bis zu 5 QR-Codes
-- **Pro** – 5,99€/Monat oder 50,32€/Jahr (**30% sparen!**) für bis zu 20 QR-Codes
-- **Premium** – 11,99€/Monat oder 100,72€/Jahr (**30% sparen!**) für bis zu 50 QR-Codes
-- **Unlimited** – 23,99€/Monat oder 201,52€/Jahr (**30% sparen!**) für unbegrenzte QR-Codes
+- **Starter** – 0,99€/Monat oder ~~11,88€~~ **8,32€/Jahr** (**30% sparen!**) für bis zu 5 QR-Codes
+- **Pro** – 1,99€/Monat oder ~~23,88€~~ **16,72€/Jahr** (**30% sparen!**) für bis zu 20 QR-Codes
+- **Premium** – 4,99€/Monat oder ~~59,88€~~ **41,92€/Jahr** (**30% sparen!**) für bis zu 50 QR-Codes
+- **Unlimited** – 9,99€/Monat oder ~~119,88€~~ **83,92€/Jahr** (**30% sparen!**) für unbegrenzte QR-Codes
 
 Die Bezahlung kann über PayPal oder per Kreditkarte via Stripe erfolgen.
 Möchtest du deinen Plan wechseln, kündige zunächst das bestehende Abo und wähle anschließend ein neues Modell.
+
+Ein Upgrade von einem günstigeren auf einen teureren Plan ist jederzeit möglich. Die Restlaufzeit des bisherigen Plans wird anteilig gutgeschrieben und auf den neuen Preis angerechnet. Das vorherige Abonnement ist beim Zahlungsdienstleister zu kündigen.
+
+Ein Downgrade von einem höheren auf einen niedrigeren Plan ist nicht möglich.
+
+Eine Kündigung ist jederzeit möglich. Das Abo bleibt jedoch bis zum Ende der bezahlten Laufzeit bestehen; eine Rückerstattung erfolgt nicht.
 
 ## Konfiguration
 
