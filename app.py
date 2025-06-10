@@ -50,6 +50,30 @@ STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Check permissions for important paths
+def check_permissions():
+    issues = []
+    upload_dir = app.config['UPLOAD_FOLDER']
+    test_file = os.path.join(upload_dir, '.perm_test')
+    try:
+        with open(test_file, 'w') as f:
+            f.write('test')
+        os.remove(test_file)
+    except Exception:
+        issues.append(f'Schreibrechte fehlen im Verzeichnis {upload_dir}')
+
+    db_path = os.path.join(app.root_path, 'database.db')
+    try:
+        with open(db_path, 'a'):
+            pass
+    except Exception:
+        issues.append(f'Schreibrechte fehlen bei der Datei {db_path}')
+
+    app.config['PERMISSION_ISSUES'] = issues
+
+# Run permission check at startup
+check_permissions()
+
 # Allowed number of QR codes per plan
 PLAN_LIMITS = {
     'basic': 1,
@@ -84,6 +108,11 @@ def inject_current_year():
 @app.context_processor
 def inject_plan_limits():
     return {'PLAN_LIMITS': PLAN_LIMITS}
+
+# Expose permission issues to templates
+@app.context_processor
+def inject_permission_issues():
+    return {'permission_issues': app.config.get('PERMISSION_ISSUES', [])}
 
 # Database
 

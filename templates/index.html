@@ -1,6 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>QR-Code Generator</h1>
+{% if current_user.is_authenticated and current_user.username == 'DO1FFE' and permission_issues %}
+<div class="alert alert-danger">
+  <h5>Berechtigungsprobleme</h5>
+  <ul class="mb-0">
+  {% for issue in permission_issues %}
+    <li>{{ issue }}</li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
 {% if not current_user.is_authenticated %}
 <div class="alert alert-info">
     Bitte <a href="{{ url_for('login') }}">einloggen</a>, um QR-Codes zu erstellen und Vorschauen anzuzeigen.
