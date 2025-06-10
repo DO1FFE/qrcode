@@ -36,3 +36,5 @@ Eine Kündigung ist jederzeit möglich. Das Abo bleibt jedoch bis zum Ende der b
 
 Die Anwendung erwartet die Stripe-API-Schlüssel in den Umgebungsvariablen
 `STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY`.
+
+Generierte QR-Code-Bilder werden im Verzeichnis `qrcodes/` gespeichert.
