@@ -11,7 +11,7 @@ from flask import (
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text
+from sqlalchemy import text, func
 from flask_login import (
     LoginManager,
     login_user,
@@ -95,6 +95,7 @@ class User(UserMixin, db.Model):
     paypal_subscription_id = db.Column(db.String(255))
     plan_expires_at = db.Column(db.DateTime(timezone=True))
     plan_cancelled = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     qrcodes = db.relationship('QRCode', backref='user', lazy=True)
 
 class QRCode(db.Model):
@@ -110,6 +111,14 @@ class QRCode(db.Model):
     @property
     def created_at_local(self):
         return self.created_at.astimezone(ZoneInfo("Europe/Berlin"))
+
+
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    amount = db.Column(db.Integer)
+    period = db.Column(db.String(10))
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
 
 # Login manager
 login_manager = LoginManager(app)
@@ -227,6 +236,7 @@ def upgrade():
             current_user.upgrade_method = f'code:{code}'
             current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
             current_user.plan_cancelled = False
+            db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Starter Plan aktiviert!')
@@ -235,6 +245,7 @@ def upgrade():
             current_user.upgrade_method = f'code:{code}'
             current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
             current_user.plan_cancelled = False
+            db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Pro Plan aktiviert!')
@@ -243,6 +254,7 @@ def upgrade():
             current_user.upgrade_method = f'code:{code}'
             current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
             current_user.plan_cancelled = False
+            db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Premium Plan aktiviert!')
@@ -251,6 +263,7 @@ def upgrade():
             current_user.upgrade_method = f'code:{code}'
             current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
             current_user.plan_cancelled = False
+            db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
             flash('Unlimited Plan aktiviert!')
@@ -329,6 +342,10 @@ def stripe_success(plan):
     else:
         current_user.plan_expires_at = datetime.utcnow() + timedelta(days=30)
     current_user.plan_cancelled = False
+    prices = STRIPE_PRICES if period == 'month' else STRIPE_PRICES_YEARLY
+    amount = prices.get(plan, 0)
+    payment = Payment(user_id=current_user.id, amount=amount, period=period)
+    db.session.add(payment)
     db.session.commit()
     enforce_qrcode_limit(current_user)
     flash(f'{plan.capitalize()} Plan aktiviert!')
@@ -537,6 +554,48 @@ def admin_panel():
     return render_template('admin.html', users=users, total_qrcodes=total_qrcodes)
 
 
+@app.route('/admin/stats')
+@login_required
+def admin_stats():
+    if not is_admin():
+        return 'Unauthorized', 403
+    return render_template('admin_stats.html')
+
+
+@app.route('/admin/stats/data')
+@login_required
+def admin_stats_data():
+    if not is_admin():
+        return 'Unauthorized', 403
+    now = datetime.utcnow()
+    one_day = now - timedelta(days=1)
+    day_labels = []
+    user_counts = []
+    qr_counts = []
+    for i in range(24):
+        hour = (one_day + timedelta(hours=i+1)).replace(minute=0, second=0, microsecond=0)
+        label = hour.strftime('%H')
+        day_labels.append(label)
+        uc = db.session.query(func.count(User.id)).filter(User.created_at >= hour - timedelta(hours=1), User.created_at < hour).scalar()
+        qc = db.session.query(func.count(QRCode.id)).filter(QRCode.created_at >= hour - timedelta(hours=1), QRCode.created_at < hour).scalar()
+        user_counts.append(uc or 0)
+        qr_counts.append(qc or 0)
+
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_revenue = db.session.query(func.sum(Payment.amount)).filter(Payment.created_at >= month_start).scalar() or 0
+    monthly_subs = db.session.query(func.count(Payment.id)).filter(Payment.period == 'month').scalar() or 0
+    yearly_subs = db.session.query(func.count(Payment.id)).filter(Payment.period == 'year').scalar() or 0
+
+    return {
+        'hours': day_labels,
+        'user_counts': user_counts,
+        'qr_counts': qr_counts,
+        'monthly_subs': monthly_subs,
+        'yearly_subs': yearly_subs,
+        'month_revenue': month_revenue / 100.0,
+    }
+
+
 @app.route('/admin/user/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_user(user_id):
@@ -663,10 +722,21 @@ if __name__ == '__main__':
                         'DEFAULT 0'
                     )
                 )
+            if 'created_at' not in columns:
+                conn.execute(
+                    text(
+                        'ALTER TABLE user ADD COLUMN created_at DATETIME'
+                    )
+                )
+                conn.execute(text("UPDATE user SET created_at = CURRENT_TIMESTAMP"))
             result = conn.execute(text('PRAGMA table_info(qr_code)'))
             qr_columns = [row[1] for row in result]
             if 'created_at' not in qr_columns:
                 conn.execute(text('ALTER TABLE qr_code ADD COLUMN created_at DATETIME'))
                 conn.execute(text("UPDATE qr_code SET created_at = CURRENT_TIMESTAMP"))
+            result = conn.execute(text('PRAGMA table_info(payment)'))
+            payment_columns = [row[1] for row in result]
+            if not payment_columns:
+                Payment.__table__.create(conn)
     debug_mode = os.environ.get('FLASK_DEBUG') == '1'
     app.run(host='0.0.0.0', port=8010, debug=debug_mode)
