@@ -27,6 +27,7 @@ Die Bezahlung kann über PayPal oder per Kreditkarte via Stripe erfolgen.
 Möchtest du deinen Plan wechseln, kündige zunächst das bestehende Abo und wähle anschließend ein neues Modell.
 
 Ein Upgrade von einem günstigeren auf einen teureren Plan ist jederzeit möglich. Die Restlaufzeit des bisherigen Plans wird anteilig gutgeschrieben und auf den neuen Preis angerechnet. Das vorherige Abonnement ist beim Zahlungsdienstleister zu kündigen.
+Seit Version 2 kannst du auch aus einem laufenden Abo heraus direkt auf einen höheren Plan wechseln. Das alte Abo wird automatisch beim Zahlungsdienstleister beendet und der noch verbleibende Betrag wird auf den ersten Preis des neuen Plans angerechnet.
 
 Ein Downgrade von einem höheren auf einen niedrigeren Plan ist nicht möglich.
 

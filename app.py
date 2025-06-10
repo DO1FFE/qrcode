@@ -85,6 +85,16 @@ PLAN_LIMITS = {
     'unlimited': None,
 }
 
+# Order of plans from cheapest to most expensive
+PLAN_ORDER = ['basic', 'starter', 'pro', 'premium', 'unlimited']
+
+def is_higher_plan(new_plan, current_plan):
+    """Return True if new_plan is a higher tier than current_plan."""
+    try:
+        return PLAN_ORDER.index(new_plan) > PLAN_ORDER.index(current_plan)
+    except ValueError:
+        return False
+
 # Monthly prices in Euro cents for Stripe
 STRIPE_PRICES = {
     'starter': 99,
@@ -111,6 +121,11 @@ def inject_current_year():
 def inject_plan_limits():
     return {'PLAN_LIMITS': PLAN_LIMITS}
 
+# Make plan comparison available in templates
+@app.context_processor
+def inject_plan_utils():
+    return {'is_higher_plan': is_higher_plan}
+
 # Expose permission issues to templates
 @app.context_processor
 def inject_permission_issues():
@@ -129,6 +144,7 @@ class User(UserMixin, db.Model):
     plan = db.Column(db.String(20), default='basic')
     upgrade_method = db.Column(db.String(20))
     paypal_subscription_id = db.Column(db.String(255))
+    stripe_subscription_id = db.Column(db.String(255))
     plan_expires_at = db.Column(db.DateTime(timezone=True))
     plan_cancelled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
@@ -259,13 +275,6 @@ def profile():
 @login_required
 def upgrade():
     if request.method == 'POST':
-        allow_new_plan = current_user.plan == 'basic' or (
-            current_user.plan_expires_at
-            and current_user.plan_expires_at <= datetime.utcnow()
-        )
-        if not allow_new_plan:
-            flash('Planwechsel erst nach Ablauf des aktuellen Plans möglich.')
-            return redirect(url_for('upgrade'))
         code = request.form.get('code', '').strip()
         if code == '2025STARTER':
             current_user.plan = 'starter'
@@ -342,19 +351,24 @@ def create_checkout_session(plan):
     if plan not in prices:
         return 'Invalid plan', 400
     try:
+        amount = prices[plan]
+        if current_user.plan != 'basic' and is_higher_plan(plan, current_user.plan):
+            credit = calculate_prorated_credit(current_user)
+            cancel_current_subscription(current_user)
+            amount = max(amount - credit, 0)
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
                     'currency': 'eur',
                     'product_data': {'name': f'{plan.capitalize()} Plan'},
-                    'unit_amount': prices[plan],
+                    'unit_amount': amount,
                     'recurring': {'interval': interval},
                 },
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=url_for('stripe_success', plan=plan, _external=True) + f'?period={period}',
+            success_url=url_for('stripe_success', plan=plan, _external=True) + f'?period={period}&session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=url_for('upgrade', _external=True),
             customer_email=current_user.email,
         )
@@ -371,6 +385,7 @@ def stripe_success(plan):
     if plan not in PLAN_LIMITS:
         return 'Invalid plan', 400
     period = request.args.get('period', 'month')
+    session_id = request.args.get('session_id')
     current_user.plan = plan
     current_user.upgrade_method = 'stripe'
     if period == 'year':
@@ -380,6 +395,12 @@ def stripe_success(plan):
     current_user.plan_cancelled = False
     prices = STRIPE_PRICES if period == 'month' else STRIPE_PRICES_YEARLY
     amount = prices.get(plan, 0)
+    if session_id:
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            current_user.stripe_subscription_id = session.get('subscription')
+        except Exception as e:
+            print('Failed to fetch Stripe session:', e)
     payment = Payment(user_id=current_user.id, amount=amount, period=period)
     db.session.add(payment)
     db.session.commit()
@@ -484,6 +505,43 @@ def cancel_paypal_subscription(sub_id):
         )
     except Exception as e:
         print("Failed to cancel PayPal subscription:", e)
+
+def cancel_stripe_subscription(sub_id):
+    """Cancel a Stripe subscription if API keys are configured."""
+    if not stripe.api_key or not sub_id:
+        return
+    try:
+        stripe.Subscription.delete(sub_id)
+    except Exception as e:
+        print("Failed to cancel Stripe subscription:", e)
+
+def cancel_current_subscription(user):
+    """Cancel any active subscription for the user."""
+    if user.paypal_subscription_id:
+        cancel_paypal_subscription(user.paypal_subscription_id)
+        user.paypal_subscription_id = None
+    if getattr(user, 'stripe_subscription_id', None):
+        cancel_stripe_subscription(user.stripe_subscription_id)
+        user.stripe_subscription_id = None
+
+def calculate_prorated_credit(user):
+    """Return remaining credit in cents for the user's current plan."""
+    if not user.plan_expires_at:
+        return 0
+    latest_payment = (
+        Payment.query.filter_by(user_id=user.id)
+        .order_by(Payment.created_at.desc())
+        .first()
+    )
+    if not latest_payment or latest_payment.amount is None:
+        return 0
+    now = datetime.utcnow()
+    remaining_seconds = (user.plan_expires_at - now).total_seconds()
+    if remaining_seconds <= 0:
+        return 0
+    total_days = 365 if latest_payment.period == 'year' else 30
+    credit = latest_payment.amount * (remaining_seconds / (86400 * total_days))
+    return int(round(credit))
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -853,6 +911,13 @@ if __name__ == '__main__':
                 conn.execute(
                     text(
                         'ALTER TABLE user ADD COLUMN paypal_subscription_id '
+                        'VARCHAR(255)'
+                    )
+                )
+            if 'stripe_subscription_id' not in columns:
+                conn.execute(
+                    text(
+                        'ALTER TABLE user ADD COLUMN stripe_subscription_id '
                         'VARCHAR(255)'
                     )
                 )

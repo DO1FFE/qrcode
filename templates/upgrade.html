@@ -13,7 +13,7 @@
 <p class="text-muted mb-1">Ein Downgrade von einem höheren auf einen niedrigeren Plan ist nicht möglich.</p>
 <p class="text-muted">Eine Kündigung ist jederzeit möglich. Das Abo bleibt jedoch bis zum Ende der bezahlten Laufzeit bestehen; eine Rückerstattung erfolgt nicht.</p>
 {% if not allow_new_plan %}
-<div class="alert alert-warning">Du kannst einen neuen Plan erst nach Ablauf deines aktuellen Plans auswählen.</div>
+<div class="alert alert-warning">Downgrades oder erneutes Buchen desselben Plans sind erst nach Ablauf des aktuellen Abos möglich.</div>
 {% endif %}
 <form method="post" class="mb-4" style="max-width:400px;">
   <div class="mb-3">
@@ -38,7 +38,7 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
+        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('starter', current_user.plan) %}disabled{% endif %}>PayPal mtl.</button>
       </form>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
@@ -49,13 +49,13 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('starter', current_user.plan) %}disabled{% endif %}>PayPal Jahr</button>
       </form>
       <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='starter') }}" method="post">
-        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+        <button class="btn {% if current_user.plan == 'starter' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('starter', current_user.plan) %}disabled{% endif %}>Stripe mtl.</button>
       </form>
       <form class="d-inline" action="{{ url_for('create_checkout_session', plan='starter') }}?period=year" method="post">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('starter', current_user.plan) %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
@@ -89,7 +89,7 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
+        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('pro', current_user.plan) %}disabled{% endif %}>PayPal mtl.</button>
       </form>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
@@ -100,13 +100,13 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('pro', current_user.plan) %}disabled{% endif %}>PayPal Jahr</button>
       </form>
       <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='pro') }}" method="post">
-        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+        <button class="btn {% if current_user.plan == 'pro' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('pro', current_user.plan) %}disabled{% endif %}>Stripe mtl.</button>
       </form>
       <form class="d-inline" action="{{ url_for('create_checkout_session', plan='pro') }}?period=year" method="post">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('pro', current_user.plan) %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
@@ -140,7 +140,7 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
+        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('premium', current_user.plan) %}disabled{% endif %}>PayPal mtl.</button>
       </form>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
@@ -151,13 +151,13 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('premium', current_user.plan) %}disabled{% endif %}>PayPal Jahr</button>
       </form>
       <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='premium') }}" method="post">
-        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+        <button class="btn {% if current_user.plan == 'premium' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('premium', current_user.plan) %}disabled{% endif %}>Stripe mtl.</button>
       </form>
       <form class="d-inline" action="{{ url_for('create_checkout_session', plan='premium') }}?period=year" method="post">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('premium', current_user.plan) %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
@@ -191,7 +191,7 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="M">
         <input type="hidden" name="src" value="1">
-        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>PayPal mtl.</button>
+        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('unlimited', current_user.plan) %}disabled{% endif %}>PayPal mtl.</button>
       </form>
       <form class="d-inline me-2" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
         <input type="hidden" name="cmd" value="_xclick-subscriptions">
@@ -202,13 +202,13 @@
         <input type="hidden" name="p3" value="1">
         <input type="hidden" name="t3" value="Y">
         <input type="hidden" name="src" value="1">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>PayPal Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('unlimited', current_user.plan) %}disabled{% endif %}>PayPal Jahr</button>
       </form>
       <form class="d-inline me-2" action="{{ url_for('create_checkout_session', plan='unlimited') }}" method="post">
-        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan %}disabled{% endif %}>Stripe mtl.</button>
+        <button class="btn {% if current_user.plan == 'unlimited' %}btn-primary{% else %}btn-outline-primary{% endif %}" {% if not allow_new_plan and not is_higher_plan('unlimited', current_user.plan) %}disabled{% endif %}>Stripe mtl.</button>
       </form>
       <form class="d-inline" action="{{ url_for('create_checkout_session', plan='unlimited') }}?period=year" method="post">
-        <button class="btn btn-outline-success" {% if not allow_new_plan %}disabled{% endif %}>Stripe Jahr</button>
+        <button class="btn btn-outline-success" {% if not allow_new_plan and not is_higher_plan('unlimited', current_user.plan) %}disabled{% endif %}>Stripe Jahr</button>
       </form>
     </div>
   </div>
