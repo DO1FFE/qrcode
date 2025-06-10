@@ -659,6 +659,48 @@ def admin_stats_data():
     }
 
 
+@app.route('/admin/permissions')
+@login_required
+def admin_permissions():
+    if not is_admin():
+        return 'Unauthorized', 403
+
+    root_dir = app.root_path
+    upload_root = app.config['UPLOAD_FOLDER']
+    dir_info = []
+    added = set()
+
+    def add_entry(label, path):
+        if label in added:
+            return
+        added.add(label)
+        dir_info.append({
+            'path': label,
+            'read': os.access(path, os.R_OK),
+            'write': os.access(path, os.W_OK),
+        })
+
+    # Database file
+    db_path = os.path.join(root_dir, 'database.db')
+    add_entry('database.db', db_path)
+
+    # User directories under qrcodes/
+    if os.path.isdir(upload_root):
+        for name in os.listdir(upload_root):
+            user_dir = os.path.join(upload_root, name)
+            if os.path.isdir(user_dir):
+                rel = os.path.relpath(user_dir, root_dir)
+                add_entry(rel, user_dir)
+
+    # Walk entire project directory
+    for dirpath, dirnames, _ in os.walk(root_dir):
+        rel = os.path.relpath(dirpath, root_dir)
+        label = rel if rel != '.' else '.'
+        add_entry(label, dirpath)
+
+    return render_template('admin_permissions.html', dir_info=dir_info)
+
+
 @app.route('/admin/user/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_user(user_id):
