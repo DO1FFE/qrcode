@@ -21,6 +21,8 @@ from flask_login import (
     UserMixin,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.exceptions import HTTPException
+import traceback
 import requests
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
@@ -407,8 +409,12 @@ def generate_qr_files(
     qr.box_size = max(1, max_pixels // qr.modules_count)
 
     drawer = RoundedModuleDrawer() if rounded else None
-    front = ImageColor.getcolor(color, "RGB")
-    back = ImageColor.getcolor(bgcolor, "RGB")
+    try:
+        front = ImageColor.getcolor(color, "RGB")
+        back = ImageColor.getcolor(bgcolor, "RGB")
+    except ValueError as e:
+        raise ValueError("Ungültige Farbe") from e
+
     img = qr.make_image(
         image_factory=StyledPilImage,
         module_drawer=drawer,
@@ -423,15 +429,17 @@ def generate_qr_files(
     os.makedirs(user_folder, exist_ok=True)
 
     png_path = os.path.join(user_folder, f'{qr_id}.png')
-    img.save(png_path)
-
     jpg_path = os.path.join(user_folder, f'{qr_id}.jpg')
-    img.convert('RGB').save(jpg_path)
-
-    svg_img = qr.make_image(image_factory=qrcode.image.svg.SvgImage)
     svg_path = os.path.join(user_folder, f'{qr_id}.svg')
-    with open(svg_path, 'wb') as f:
-        svg_img.save(f)
+
+    try:
+        img.save(png_path)
+        img.convert('RGB').save(jpg_path)
+        svg_img = qr.make_image(image_factory=qrcode.image.svg.SvgImage)
+        with open(svg_path, 'wb') as f:
+            svg_img.save(f)
+    except Exception as e:
+        raise IOError("Fehler beim Speichern der QR-Dateien") from e
 
     return qr_id, png_path, jpg_path, svg_path
 
@@ -492,24 +500,29 @@ def index():
         bgcolor = request.form.get('bgcolor', 'white')
         rounded = request.form.get('rounded') == 'on'
         description = request.form.get('description')
-        qr_id, png_path, jpg_path, svg_path = generate_qr_files(
-            url_input,
-            color=color,
-            bgcolor=bgcolor,
-            rounded=rounded,
-            user_id=current_user.id,
-        )
-        qr = QRCode(
-            url=url_input,
-            description=description,
-            png_path=png_path,
-            jpg_path=jpg_path,
-            svg_path=svg_path,
-            user=current_user,
-        )
-        db.session.add(qr)
-        db.session.commit()
-        flash('QR-Code erstellt!')
+        try:
+            qr_id, png_path, jpg_path, svg_path = generate_qr_files(
+                url_input,
+                color=color,
+                bgcolor=bgcolor,
+                rounded=rounded,
+                user_id=current_user.id,
+            )
+            qr = QRCode(
+                url=url_input,
+                description=description,
+                png_path=png_path,
+                jpg_path=jpg_path,
+                svg_path=svg_path,
+                user=current_user,
+            )
+            db.session.add(qr)
+            db.session.commit()
+            flash('QR-Code erstellt!')
+        except Exception as e:
+            db.session.rollback()
+            flash('Fehler beim Erstellen des QR-Codes')
+            print('QR creation failed:', e)
         return redirect(url_for('index'))
 
     qrs = (
@@ -539,7 +552,11 @@ def preview(qr_id):
     qr = QRCode.query.get_or_404(qr_id)
     directory = os.path.dirname(qr.png_path)
     filename = os.path.basename(qr.png_path)
-    return send_from_directory(directory, filename)
+    try:
+        return send_from_directory(directory, filename)
+    except FileNotFoundError:
+        flash('Datei nicht gefunden')
+        return redirect(url_for('index'))
 
 @app.route('/download/<int:qr_id>/<fmt>')
 @login_required
@@ -557,7 +574,11 @@ def download(qr_id, fmt):
         return 'Unsupported format', 400
     directory = os.path.dirname(path)
     filename = os.path.basename(path)
-    return send_from_directory(directory, filename, as_attachment=True)
+    try:
+        return send_from_directory(directory, filename, as_attachment=True)
+    except FileNotFoundError:
+        flash('Datei nicht gefunden')
+        return redirect(url_for('index'))
 
 @app.route('/delete/<int:qr_id>', methods=['POST'])
 @login_required
@@ -570,7 +591,7 @@ def delete(qr_id):
             try:
                 os.remove(path)
             except OSError:
-                pass
+                flash('Datei konnte nicht entfernt werden')
     try:
         db.session.delete(qr)
         db.session.commit()
@@ -697,7 +718,7 @@ def admin_delete_qrcode(qr_id):
             try:
                 os.remove(path)
             except OSError:
-                pass
+                flash('Datei konnte nicht entfernt werden')
     try:
         db.session.delete(qr)
         db.session.commit()
@@ -722,7 +743,7 @@ def delete_user(user_id):
                 try:
                     os.remove(path)
                 except OSError:
-                    pass
+                    flash('Datei konnte nicht entfernt werden')
         db.session.delete(qr)
     try:
         db.session.delete(user)
@@ -743,6 +764,15 @@ def impressum():
 @app.route('/datenschutz')
 def privacy():
     return render_template('datenschutz.html')
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    if isinstance(e, HTTPException):
+        return e
+    print('Unhandled exception:', e)
+    traceback.print_exc()
+    return render_template('error.html'), 500
 
 if __name__ == '__main__':
     with app.app_context():
