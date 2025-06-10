@@ -8,6 +8,7 @@ Die Anwendung nutzt ein modernes Design auf Basis des Minty-Bootswatch-Themes.
 - Größe der QR-Codes passt sich automatisch dem Inhalt an
 - Verschiedene Inhalte möglich: URL, Text, Email, Telefon, SMS oder Kontaktdaten
 - QR-Codes werden pro Benutzer gespeichert
+- Eigene QR-Codes können erst nach 14 Tagen gelöscht werden
 - Download als PNG, JPG oder SVG
 - Zu jedem QR-Code kann eine kurze Beschreibung hinterlegt werden
 - Vorschau der QR-Codes in der Übersicht
@@ -33,6 +34,7 @@ Seit Version 2 kannst du auch aus einem laufenden Abo heraus direkt auf einen h�
 Ein Downgrade von einem höheren auf einen niedrigeren Plan ist nicht möglich.
 
 Eine Kündigung ist jederzeit möglich. Das Abo bleibt jedoch bis zum Ende der bezahlten Laufzeit bestehen; eine Rückerstattung erfolgt nicht.
+Fällt dein Plan auf **Basic** zurück, werden automatisch die ältesten QR-Codes gelöscht, so dass nur der zuletzt erstellte bestehen bleibt.
 
 ## Konfiguration
 
