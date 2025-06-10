@@ -85,6 +85,9 @@ PLAN_LIMITS = {
     'unlimited': None,
 }
 
+# Users can delete their own QR codes only after this period
+DELETE_GRACE_PERIOD = timedelta(days=14)
+
 # Order of plans from cheapest to most expensive
 PLAN_ORDER = ['basic', 'starter', 'pro', 'premium', 'unlimited']
 
@@ -194,6 +197,7 @@ def check_plan_expiration():
             current_user.plan_cancelled = False
             current_user.paypal_subscription_id = None
             db.session.commit()
+            enforce_qrcode_limit(current_user)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -668,6 +672,9 @@ def delete(qr_id):
     qr = QRCode.query.get_or_404(qr_id)
     if qr.user_id != current_user.id:
         return 'Unauthorized', 403
+    if qr.created_at and datetime.utcnow() - qr.created_at < DELETE_GRACE_PERIOD:
+        flash('QR-Code kann erst nach 14 Tagen gelöscht werden')
+        return redirect(url_for('index'))
     for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
         if path and os.path.exists(path):
             try:
