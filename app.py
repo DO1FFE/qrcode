@@ -56,18 +56,18 @@ PLAN_LIMITS = {
 
 # Monthly prices in Euro cents for Stripe
 STRIPE_PRICES = {
-    'starter': 249,
-    'pro': 599,
-    'premium': 1199,
-    'unlimited': 2399,
+    'starter': 99,
+    'pro': 199,
+    'premium': 499,
+    'unlimited': 999,
 }
 
 # Yearly prices with 30% discount applied
 STRIPE_PRICES_YEARLY = {
-    'starter': 2092,
-    'pro': 5032,
-    'premium': 10072,
-    'unlimited': 20152,
+    'starter': 832,
+    'pro': 1672,
+    'premium': 4192,
+    'unlimited': 8392,
 }
 
 # Provide current year to templates
@@ -280,7 +280,7 @@ def cancel_subscription():
     current_user.plan_cancelled = True
     current_user.upgrade_method = 'cancelled'
     db.session.commit()
-    flash('Abo gekündigt. Dein Plan bleibt bis zum Ablauf der aktuellen Laufzeit aktiv.')
+    flash('Abo gekündigt. Dein Plan bleibt bis zum Ablauf der aktuellen Laufzeit aktiv. Keine Rückerstattung.')
     return redirect(url_for('profile'))
 
 
