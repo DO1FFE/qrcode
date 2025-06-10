@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Statistiken</h1>
+<canvas id="userChart" class="mb-4" height="100"></canvas>
+<canvas id="qrChart" class="mb-4" height="100"></canvas>
+<div class="mt-3">
+  <p>Monatliche Abos: <span id="monthly_subs"></span></p>
+  <p>Jährliche Abos: <span id="yearly_subs"></span></p>
+  <p>Umsatz dieses Monats: <span id="month_revenue"></span> €</p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('{{ url_for('admin_stats_data') }}')
+  .then(r => r.json())
+  .then(d => {
+    const ctx1 = document.getElementById('userChart');
+    new Chart(ctx1, {
+      type: 'line',
+      data: { labels: d.hours, datasets: [{ label: 'Registrierungen/Std', data: d.user_counts }] },
+      options: { scales: { y: { beginAtZero: true } } }
+    });
+    const ctx2 = document.getElementById('qrChart');
+    new Chart(ctx2, {
+      type: 'line',
+      data: { labels: d.hours, datasets: [{ label: 'QR-Codes/Std', data: d.qr_counts, borderColor: 'orange' }] },
+      options: { scales: { y: { beginAtZero: true } } }
+    });
+    document.getElementById('monthly_subs').textContent = d.monthly_subs;
+    document.getElementById('yearly_subs').textContent = d.yearly_subs;
+    document.getElementById('month_revenue').textContent = d.month_revenue.toFixed(2);
+  });
+</script>
+{% endblock %}
