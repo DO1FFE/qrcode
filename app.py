@@ -34,7 +34,12 @@ import stripe
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/do1ffe/qrcode/database.db'
+# Use a database file inside the application directory. This avoids absolute
+# paths that may not exist when the application is started via systemd or in
+# other environments.
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(
+    app.root_path, 'database.db'
+)
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'qrcodes')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
