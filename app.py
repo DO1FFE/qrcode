@@ -567,10 +567,18 @@ def delete(qr_id):
         return 'Unauthorized', 403
     for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
         if path and os.path.exists(path):
-            os.remove(path)
-    db.session.delete(qr)
-    db.session.commit()
-    flash('QR-Code gelöscht')
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+    try:
+        db.session.delete(qr)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Fehler beim Löschen des QR-Codes')
+    else:
+        flash('QR-Code gelöscht')
     return redirect(url_for('index'))
 
 
@@ -686,10 +694,18 @@ def admin_delete_qrcode(qr_id):
     user_id = qr.user_id
     for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
         if path and os.path.exists(path):
-            os.remove(path)
-    db.session.delete(qr)
-    db.session.commit()
-    flash('QR-Code gelöscht')
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+    try:
+        db.session.delete(qr)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Fehler beim Löschen des QR-Codes')
+    else:
+        flash('QR-Code gelöscht')
     return redirect(url_for('admin_user_qrcodes', user_id=user_id))
 
 
@@ -703,11 +719,19 @@ def delete_user(user_id):
     for qr in user.qrcodes:
         for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
             if path and os.path.exists(path):
-                os.remove(path)
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
         db.session.delete(qr)
-    db.session.delete(user)
-    db.session.commit()
-    flash('Benutzer gelöscht')
+    try:
+        db.session.delete(user)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Fehler beim Löschen des Benutzers')
+    else:
+        flash('Benutzer gelöscht')
     return redirect(url_for('admin_panel'))
 
 
