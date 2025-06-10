@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Admin</h1>
-<p><a class="btn btn-warning" href="{{ url_for('admin_stats') }}">Statistiken</a></p>
+<p>
+  <a class="btn btn-warning me-2" href="{{ url_for('admin_stats') }}">Statistiken</a>
+  <a class="btn btn-warning" href="{{ url_for('admin_permissions') }}">Berechtigungen</a>
+</p>
 <table class="table table-dark table-striped table-hover">
   <thead>
     <tr>

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Dateirechte</h1>
+<table class="table table-dark table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Verzeichnis</th>
+      <th>Lesbar</th>
+      <th>Schreibbar</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in dir_info %}
+    <tr>
+      <td>{{ d.path }}</td>
+      <td>{% if d.read %}OK{% else %}<span class="text-danger">Fehler</span>{% endif %}</td>
+      <td>{% if d.write %}OK{% else %}<span class="text-danger">Fehler</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
