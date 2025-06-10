@@ -95,6 +95,7 @@ class User(UserMixin, db.Model):
     paypal_subscription_id = db.Column(db.String(255))
     plan_expires_at = db.Column(db.DateTime(timezone=True))
     plan_cancelled = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     qrcodes = db.relationship('QRCode', backref='user', lazy=True)
 
@@ -541,7 +542,10 @@ def delete(qr_id):
 
 
 def is_admin():
-    return current_user.is_authenticated and current_user.username == 'DO1FFE'
+    return (
+        current_user.is_authenticated
+        and (current_user.username == 'DO1FFE' or current_user.is_admin)
+    )
 
 
 @app.route('/admin')
@@ -619,6 +623,7 @@ def edit_user(user_id):
         user.email = new_email
         user.plan = request.form.get('plan')
         user.upgrade_method = request.form.get('upgrade_method')
+        user.is_admin = bool(request.form.get('is_admin'))
 
         try:
             db.session.commit()
@@ -719,6 +724,13 @@ if __name__ == '__main__':
                 conn.execute(
                     text(
                         'ALTER TABLE user ADD COLUMN plan_cancelled BOOLEAN '
+                        'DEFAULT 0'
+                    )
+                )
+            if 'is_admin' not in columns:
+                conn.execute(
+                    text(
+                        'ALTER TABLE user ADD COLUMN is_admin BOOLEAN '
                         'DEFAULT 0'
                     )
                 )

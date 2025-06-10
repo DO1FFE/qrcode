@@ -36,3 +36,19 @@ Eine Kündigung ist jederzeit möglich. Das Abo bleibt jedoch bis zum Ende der b
 
 Die Anwendung erwartet die Stripe-API-Schlüssel in den Umgebungsvariablen
 `STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY`.
+
+Um auf den Adminbereich zugreifen zu können, muss ein Benutzer als
+Administrator markiert sein. Der Benutzer **DO1FFE** ist immer automatisch
+Administrator. Weitere Benutzer kannst du nach dem Login über die Admin-Oberfläche
+unter "Benutzer bearbeiten" zum Admin machen.
+
+Alternativ lässt sich ein Konto auch direkt per Python-Shell zum Admin
+machen:
+
+```python
+from app import db, User
+u = User.query.filter_by(username="deinname").first()
+u.is_admin = True
+db.session.commit()
+```
+

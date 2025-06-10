@@ -28,6 +28,10 @@
     <label class="form-label">Upgrade Methode</label>
     <input type="text" class="form-control" name="upgrade_method" value="{{ user.upgrade_method }}">
   </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="is_admin" id="is_admin" {% if user.is_admin %}checked{% endif %}>
+    <label class="form-check-label" for="is_admin">Admin</label>
+  </div>
   <button class="btn btn-primary" type="submit">Speichern</button>
 </form>
 {% endblock %}
