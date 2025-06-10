@@ -533,7 +533,8 @@ def admin_panel():
     if not is_admin():
         return 'Unauthorized', 403
     users = User.query.all()
-    return render_template('admin.html', users=users)
+    total_qrcodes = QRCode.query.count()
+    return render_template('admin.html', users=users, total_qrcodes=total_qrcodes)
 
 
 @app.route('/admin/user/<int:user_id>/edit', methods=['GET', 'POST'])
@@ -571,6 +572,32 @@ def edit_user(user_id):
         flash('Benutzer aktualisiert')
         return redirect(url_for('admin_panel'))
     return render_template('edit_user.html', user=user)
+
+
+@app.route('/admin/user/<int:user_id>/qrcodes')
+@login_required
+def admin_user_qrcodes(user_id):
+    if not is_admin():
+        return 'Unauthorized', 403
+    user = User.query.get_or_404(user_id)
+    qrcodes = QRCode.query.filter_by(user_id=user_id).all()
+    return render_template('user_qrcodes.html', user=user, qrcodes=qrcodes)
+
+
+@app.route('/admin/qrcode/<int:qr_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_qrcode(qr_id):
+    if not is_admin():
+        return 'Unauthorized', 403
+    qr = QRCode.query.get_or_404(qr_id)
+    user_id = qr.user_id
+    for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
+        if path and os.path.exists(path):
+            os.remove(path)
+    db.session.delete(qr)
+    db.session.commit()
+    flash('QR-Code gelöscht')
+    return redirect(url_for('admin_user_qrcodes', user_id=user_id))
 
 
 @app.route('/admin/user/<int:user_id>/delete', methods=['POST'])
