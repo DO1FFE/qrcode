@@ -31,6 +31,7 @@ from qrcode.image.styles.colormasks import SolidFillColorMask
 import qrcode.image.svg
 from PIL import ImageColor
 import stripe
+from tesla_api import bp as tesla_bp
 
 
 
@@ -44,6 +45,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(
 )
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'qrcodes')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Register optional Tesla API blueprint
+app.register_blueprint(tesla_bp)
 
 # Stripe configuration
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
