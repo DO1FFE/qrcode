@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ qr.description or 'QR-Code' }}</h1>
+{% if qr.data_type == 'url' %}
+  <p><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
+{% elif qr.data_type == 'text' %}
+  <pre>{{ qr.url }}</pre>
+{% elif qr.data_type == 'email' %}
+  <p>Email: <a href="{{ qr.url }}">{{ qr.url[7:] }}</a></p>
+{% elif qr.data_type == 'phone' %}
+  <p>Telefon: <a href="{{ qr.url }}">{{ qr.url[4:] }}</a></p>
+{% elif qr.data_type == 'sms' %}
+  <p>{{ qr.url }}</p>
+{% elif qr.data_type == 'contact' %}
+  <h2>{{ vcard.name }}</h2>
+  {% if vcard.phone %}<p>Tel: <a href="tel:{{ vcard.phone }}">{{ vcard.phone }}</a></p>{% endif %}
+  {% if vcard.email %}<p>Email: <a href="mailto:{{ vcard.email }}">{{ vcard.email }}</a></p>{% endif %}
+{% else %}
+  <p>{{ qr.url }}</p>
+{% endif %}
+{% endblock %}
