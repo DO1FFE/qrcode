@@ -637,7 +637,10 @@ def index():
 
 @app.route('/qr/<int:qr_id>')
 def show_qr(qr_id):
-    qr = QRCode.query.get_or_404(qr_id)
+    qr = QRCode.query.get(qr_id)
+    if qr is None:
+        flash('Dieser QR-Code ist nicht mehr aktuell.')
+        return redirect(url_for('index'))
     vcard = None
     if qr.data_type == 'contact':
         vcard = {'name': '', 'phone': '', 'email': ''}
