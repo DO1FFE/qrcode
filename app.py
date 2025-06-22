@@ -496,6 +496,38 @@ def enforce_qrcode_limit(user):
         db.session.commit()
 
 
+def cleanup_orphaned_qrcodes():
+    """Synchronize QR code files with database records."""
+    removed = False
+
+    # Delete database entries whose files are missing
+    for qr in QRCode.query.all():
+        paths = [qr.png_path, qr.jpg_path, qr.svg_path]
+        if not all(path and os.path.exists(path) for path in paths):
+            db.session.delete(qr)
+            removed = True
+    if removed:
+        db.session.commit()
+
+    # Collect paths that should exist according to the database
+    tracked_paths = set()
+    for qr in QRCode.query.all():
+        for p in (qr.png_path, qr.jpg_path, qr.svg_path):
+            if p:
+                tracked_paths.add(os.path.abspath(p))
+
+    # Remove files on disk that are not referenced in the database
+    for root_dir, _, files in os.walk(app.config['UPLOAD_FOLDER']):
+        for filename in files:
+            if filename.lower().endswith(('.png', '.jpg', '.svg')):
+                file_path = os.path.abspath(os.path.join(root_dir, filename))
+                if file_path not in tracked_paths:
+                    try:
+                        os.remove(file_path)
+                    except FileNotFoundError:
+                        pass
+
+
 def cancel_paypal_subscription(sub_id):
     client_id = os.environ.get('PAYPAL_CLIENT_ID')
     client_secret = os.environ.get('PAYPAL_CLIENT_SECRET')
@@ -1019,5 +1051,6 @@ if __name__ == '__main__':
             payment_columns = [row[1] for row in result]
             if not payment_columns:
                 Payment.__table__.create(conn)
+        cleanup_orphaned_qrcodes()
     debug_mode = os.environ.get('FLASK_DEBUG') == '1'
     app.run(host='0.0.0.0', port=8010, debug=debug_mode)
