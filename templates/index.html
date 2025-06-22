@@ -97,7 +97,7 @@
   {% for qr in qrcodes %}
   <div class="col">
     <div class="card h-100">
-      <img src="{{ url_for('preview', qr_id=qr.id) }}" class="card-img-top qr-preview" alt="QR-Code">
+      <img src="{{ url_for('preview', qr_id=qr.public_id) }}" class="card-img-top qr-preview" alt="QR-Code">
       <div class="card-body">
         <h5 class="card-title">{{ qr.description or 'QR Code' }}</h5>
         {% if qr.data_type == 'url' %}
@@ -107,11 +107,11 @@
         {% endif %}
         <p class="card-text"><small class="text-muted">{{ qr.created_at_local.strftime('%d.%m.%Y %H:%M') }}</small></p>
         <div class="btn-group" role="group">
-          <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-outline-light download-btn">PNG</a>
-          <a href="{{ url_for('download', qr_id=qr.id, fmt='jpg') }}" class="btn btn-outline-light download-btn">JPG</a>
-          <a href="{{ url_for('download', qr_id=qr.id, fmt='svg') }}" class="btn btn-outline-light download-btn">SVG</a>
+          <a href="{{ url_for('download', qr_id=qr.public_id, fmt='png') }}" class="btn btn-outline-light download-btn">PNG</a>
+          <a href="{{ url_for('download', qr_id=qr.public_id, fmt='jpg') }}" class="btn btn-outline-light download-btn">JPG</a>
+          <a href="{{ url_for('download', qr_id=qr.public_id, fmt='svg') }}" class="btn btn-outline-light download-btn">SVG</a>
         </div>
-        <form method="post" action="{{ url_for('delete', qr_id=qr.id) }}" class="mt-2" onsubmit="return confirm('Löschen?');">
+        <form method="post" action="{{ url_for('delete', qr_id=qr.public_id) }}" class="mt-2" onsubmit="return confirm('Löschen?');">
           <button class="btn btn-danger btn-sm">Löschen</button>
         </form>
       </div>
