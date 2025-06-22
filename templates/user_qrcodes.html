@@ -16,7 +16,11 @@
     <tr>
       <td>{{ qr.id }}</td>
       <td>{{ qr.description or '-' }}</td>
-      <td><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></td>
+      <td>
+        <a href="{{ url_for('follow_qr', qr_id=qr.id, _external=True) }}" target="_blank">
+          {{ url_for('follow_qr', qr_id=qr.id, _external=True) }}
+        </a>
+      </td>
       <td>{{ qr.created_at_local.strftime('%d.%m.%Y %H:%M') }}</td>
       <td>
         <form method="post" action="{{ url_for('admin_delete_qrcode', qr_id=qr.id) }}" style="display:inline-block" onsubmit="return confirm('Löschen?');">

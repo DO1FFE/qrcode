@@ -53,7 +53,11 @@
       <img src="{{ url_for('preview', qr_id=qr.id) }}" class="card-img-top qr-preview" alt="QR-Code">
       <div class="card-body">
         <h5 class="card-title">{{ qr.description or 'QR Code' }}</h5>
-        <p class="card-text"><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
+        <p class="card-text">
+          <a href="{{ url_for('follow_qr', qr_id=qr.id, _external=True) }}" target="_blank">
+            {{ url_for('follow_qr', qr_id=qr.id, _external=True) }}
+          </a>
+        </p>
         <p class="card-text"><small class="text-muted">{{ qr.created_at_local.strftime('%d.%m.%Y %H:%M') }}</small></p>
         <div class="btn-group" role="group">
           <a href="{{ url_for('download', qr_id=qr.id, fmt='png') }}" class="btn btn-outline-light download-btn">PNG</a>

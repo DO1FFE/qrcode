@@ -459,22 +459,24 @@ def index():
         bgcolor = request.form.get('bgcolor', 'white')
         rounded = request.form.get('rounded') == 'on'
         description = request.form.get('description')
-        qr_id, png_path, jpg_path, svg_path = generate_qr_files(
-            url_input,
+        qr = QRCode(
+            url=url_input,
+            description=description,
+            user=current_user,
+        )
+        db.session.add(qr)
+        db.session.flush()
+        short_url = url_for('follow_qr', qr_id=qr.id, _external=True)
+        _, png_path, jpg_path, svg_path = generate_qr_files(
+            short_url,
             color=color,
             bgcolor=bgcolor,
             rounded=rounded,
             user_id=current_user.id,
         )
-        qr = QRCode(
-            url=url_input,
-            description=description,
-            png_path=png_path,
-            jpg_path=jpg_path,
-            svg_path=svg_path,
-            user=current_user,
-        )
-        db.session.add(qr)
+        qr.png_path = png_path
+        qr.jpg_path = jpg_path
+        qr.svg_path = svg_path
         db.session.commit()
         flash('QR-Code erstellt!')
         return redirect(url_for('index'))
@@ -507,6 +509,12 @@ def preview(qr_id):
     directory = os.path.dirname(qr.png_path)
     filename = os.path.basename(qr.png_path)
     return send_from_directory(directory, filename)
+
+
+@app.route('/r/<int:qr_id>')
+def follow_qr(qr_id):
+    qr = QRCode.query.get_or_404(qr_id)
+    return redirect(qr.url)
 
 @app.route('/download/<int:qr_id>/<fmt>')
 @login_required
