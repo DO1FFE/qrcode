@@ -12,6 +12,8 @@ Die Anwendung nutzt ein modernes Design auf Basis des Minty-Bootswatch-Themes.
 - Download als PNG, JPG oder SVG
 - Zu jedem QR-Code kann eine kurze Beschreibung hinterlegt werden
 - Vorschau der QR-Codes in der Übersicht
+- Beim Scannen öffnet sich zuerst eine Seite der Anwendung, die den hinterlegten
+  Inhalt (z.B. VCARD) anzeigt
 
 ## Pläne
 

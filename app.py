@@ -586,23 +586,25 @@ def index():
         rounded = request.form.get('rounded') == 'on'
         description = request.form.get('description')
         try:
+            qr = QRCode(
+                url=data_input,
+                data_type=data_type,
+                description=description,
+                user=current_user,
+            )
+            db.session.add(qr)
+            db.session.flush()
+            qr_link = url_for('show_qr', qr_id=qr.id, _external=True)
             qr_id, png_path, jpg_path, svg_path = generate_qr_files(
-                data_input,
+                qr_link,
                 color=color,
                 bgcolor=bgcolor,
                 rounded=rounded,
                 user_id=current_user.id,
             )
-            qr = QRCode(
-                url=data_input,
-                data_type=data_type,
-                description=description,
-                png_path=png_path,
-                jpg_path=jpg_path,
-                svg_path=svg_path,
-                user=current_user,
-            )
-            db.session.add(qr)
+            qr.png_path = png_path
+            qr.jpg_path = jpg_path
+            qr.svg_path = svg_path
             db.session.commit()
             flash('QR-Code erstellt!')
         except Exception as e:
@@ -632,6 +634,21 @@ def index():
         remaining=remaining,
         limit=limit,
     )
+
+@app.route('/qr/<int:qr_id>')
+def show_qr(qr_id):
+    qr = QRCode.query.get_or_404(qr_id)
+    vcard = None
+    if qr.data_type == 'contact':
+        vcard = {'name': '', 'phone': '', 'email': ''}
+        for line in qr.url.splitlines():
+            if line.startswith('FN:'):
+                vcard['name'] = line[3:]
+            elif line.startswith('TEL:'):
+                vcard['phone'] = line[4:]
+            elif line.startswith('EMAIL:'):
+                vcard['email'] = line[6:]
+    return render_template('qr_view.html', qr=qr, vcard=vcard)
 
 @app.route('/preview/<int:qr_id>')
 def preview(qr_id):
