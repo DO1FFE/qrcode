@@ -31,6 +31,8 @@ from qrcode.image.styles.colormasks import SolidFillColorMask
 import qrcode.image.svg
 from PIL import ImageColor
 import stripe
+import secrets
+import string
 
 
 
@@ -90,6 +92,11 @@ DELETE_GRACE_PERIOD = timedelta(days=14)
 
 # Order of plans from cheapest to most expensive
 PLAN_ORDER = ['basic', 'starter', 'pro', 'premium', 'unlimited']
+
+def generate_public_id(length: int = 8) -> str:
+    """Return a random alphanumeric ID for QR codes."""
+    alphabet = string.ascii_lowercase + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 def is_higher_plan(new_plan, current_plan):
     """Return True if new_plan is a higher tier than current_plan."""
@@ -155,6 +162,9 @@ class User(UserMixin, db.Model):
 
 class QRCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    public_id = db.Column(
+        db.String(16), unique=True, index=True, nullable=False, default=generate_public_id
+    )
     url = db.Column(db.String(2048))
     data_type = db.Column(db.String(20), default='url')
     description = db.Column(db.String(255))
@@ -421,6 +431,7 @@ def generate_qr_files(
     bgcolor='white',
     rounded=False,
     user_id=None,
+    file_id=None,
 ):
     qr = qrcode.QRCode(
         error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -446,7 +457,7 @@ def generate_qr_files(
         module_drawer=drawer,
         color_mask=SolidFillColorMask(front_color=front, back_color=back),
     )
-    qr_id = os.urandom(8).hex()
+    qr_id = file_id or os.urandom(8).hex()
     user_folder = (
         os.path.join(app.config['UPLOAD_FOLDER'], str(user_id))
         if user_id
@@ -586,7 +597,9 @@ def index():
         rounded = request.form.get('rounded') == 'on'
         description = request.form.get('description')
         try:
+            public_id = generate_public_id()
             qr = QRCode(
+                public_id=public_id,
                 url=data_input,
                 data_type=data_type,
                 description=description,
@@ -594,13 +607,14 @@ def index():
             )
             db.session.add(qr)
             db.session.flush()
-            qr_link = url_for('show_qr', qr_id=qr.id, _external=True)
-            qr_id, png_path, jpg_path, svg_path = generate_qr_files(
+            qr_link = url_for('show_qr', qr_id=qr.public_id, _external=True)
+            _, png_path, jpg_path, svg_path = generate_qr_files(
                 qr_link,
                 color=color,
                 bgcolor=bgcolor,
                 rounded=rounded,
                 user_id=current_user.id,
+                file_id=qr.public_id,
             )
             qr.png_path = png_path
             qr.jpg_path = jpg_path
@@ -635,9 +649,9 @@ def index():
         limit=limit,
     )
 
-@app.route('/qr/<int:qr_id>')
+@app.route('/qr/<string:qr_id>')
 def show_qr(qr_id):
-    qr = QRCode.query.get(qr_id)
+    qr = QRCode.query.filter_by(public_id=qr_id).first()
     if qr is None:
         flash('Dieser QR-Code ist nicht mehr aktuell.')
         return redirect(url_for('index'))
@@ -653,9 +667,9 @@ def show_qr(qr_id):
                 vcard['email'] = line[6:]
     return render_template('qr_view.html', qr=qr, vcard=vcard)
 
-@app.route('/preview/<int:qr_id>')
+@app.route('/preview/<string:qr_id>')
 def preview(qr_id):
-    qr = QRCode.query.get_or_404(qr_id)
+    qr = QRCode.query.filter_by(public_id=qr_id).first_or_404()
     directory = os.path.dirname(qr.png_path)
     filename = os.path.basename(qr.png_path)
     try:
@@ -664,10 +678,10 @@ def preview(qr_id):
         flash('Datei nicht gefunden')
         return redirect(url_for('index'))
 
-@app.route('/download/<int:qr_id>/<fmt>')
+@app.route('/download/<string:qr_id>/<fmt>')
 @login_required
 def download(qr_id, fmt):
-    qr = QRCode.query.get_or_404(qr_id)
+    qr = QRCode.query.filter_by(public_id=qr_id).first_or_404()
     if qr.user_id != current_user.id:
         return 'Unauthorized', 403
     if fmt == 'png':
@@ -686,10 +700,10 @@ def download(qr_id, fmt):
         flash('Datei nicht gefunden')
         return redirect(url_for('index'))
 
-@app.route('/delete/<int:qr_id>', methods=['POST'])
+@app.route('/delete/<string:qr_id>', methods=['POST'])
 @login_required
 def delete(qr_id):
-    qr = QRCode.query.get_or_404(qr_id)
+    qr = QRCode.query.filter_by(public_id=qr_id).first_or_404()
     if qr.user_id != current_user.id:
         return 'Unauthorized', 403
     if qr.created_at and datetime.utcnow() - qr.created_at < DELETE_GRACE_PERIOD:
@@ -874,12 +888,12 @@ def admin_user_qrcodes(user_id):
     return render_template('user_qrcodes.html', user=user, qrcodes=qrcodes)
 
 
-@app.route('/admin/qrcode/<int:qr_id>/delete', methods=['POST'])
+@app.route('/admin/qrcode/<string:qr_id>/delete', methods=['POST'])
 @login_required
 def admin_delete_qrcode(qr_id):
     if not is_admin():
         return 'Unauthorized', 403
-    qr = QRCode.query.get_or_404(qr_id)
+    qr = QRCode.query.filter_by(public_id=qr_id).first_or_404()
     user_id = qr.user_id
     for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
         if path and os.path.exists(path):
@@ -999,6 +1013,8 @@ if __name__ == '__main__':
                 conn.execute(text("UPDATE qr_code SET created_at = CURRENT_TIMESTAMP"))
             if 'data_type' not in qr_columns:
                 conn.execute(text("ALTER TABLE qr_code ADD COLUMN data_type VARCHAR(20) DEFAULT 'url'"))
+            if 'public_id' not in qr_columns:
+                conn.execute(text("ALTER TABLE qr_code ADD COLUMN public_id VARCHAR(16)"))
             result = conn.execute(text('PRAGMA table_info(payment)'))
             payment_columns = [row[1] for row in result]
             if not payment_columns:
