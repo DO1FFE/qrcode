@@ -2,7 +2,8 @@
 {% block content %}
 <h1>{{ qr.description or 'QR-Code' }}</h1>
 {% if qr.data_type == 'url' %}
-  <p><a href="{{ qr.url }}" target="_blank">{{ qr.url }}</a></p>
+  <meta http-equiv="refresh" content="0; url={{ qr.url }}">
+  <p>Weiterleitung...</p>
 {% elif qr.data_type == 'text' %}
   <pre>{{ qr.url }}</pre>
 {% elif qr.data_type == 'email' %}

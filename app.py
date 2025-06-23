@@ -218,10 +218,10 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         if User.query.filter_by(username=username).first():
-            flash('Benutzername bereits vergeben')
+            flash('Benutzername bereits vergeben', 'danger')
             return redirect(url_for('register'))
         if User.query.filter_by(email=email).first():
-            flash('Email bereits vergeben')
+            flash('Email bereits vergeben', 'danger')
             return redirect(url_for('register'))
         user = User(
             username=username,
@@ -248,7 +248,7 @@ def login():
         ):
             login_user(user)
             return redirect(url_for('index'))
-        flash('Ungültige Anmeldedaten')
+        flash('Ungültige Anmeldedaten', 'danger')
     return render_template('login.html')
 
 
@@ -270,7 +270,7 @@ def profile():
         if password:
             current_user.password_hash = generate_password_hash(password)
         db.session.commit()
-        flash('Profil aktualisiert')
+        flash('Profil aktualisiert', 'success')
         return redirect(url_for('profile'))
     remaining = None
     next_charge = None
@@ -299,7 +299,7 @@ def upgrade():
             db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
-            flash('Starter Plan aktiviert!')
+            flash('Starter Plan aktiviert!', 'success')
         elif code == '2025PRO':
             current_user.plan = 'pro'
             current_user.upgrade_method = f'code:{code}'
@@ -308,7 +308,7 @@ def upgrade():
             db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
-            flash('Pro Plan aktiviert!')
+            flash('Pro Plan aktiviert!', 'success')
         elif code == '2025PREMIUM':
             current_user.plan = 'premium'
             current_user.upgrade_method = f'code:{code}'
@@ -317,7 +317,7 @@ def upgrade():
             db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
-            flash('Premium Plan aktiviert!')
+            flash('Premium Plan aktiviert!', 'success')
         elif code == '2025UNLIMITED':
             current_user.plan = 'unlimited'
             current_user.upgrade_method = f'code:{code}'
@@ -326,9 +326,9 @@ def upgrade():
             db.session.add(Payment(user_id=current_user.id, amount=0, period='code'))
             db.session.commit()
             enforce_qrcode_limit(current_user)
-            flash('Unlimited Plan aktiviert!')
+            flash('Unlimited Plan aktiviert!', 'success')
         else:
-            flash('Ungültiger Code')
+            flash('Ungültiger Code', 'danger')
     allow_new_plan = current_user.plan == 'basic' or (
         current_user.plan_expires_at
         and current_user.plan_expires_at <= datetime.utcnow()
@@ -353,7 +353,7 @@ def cancel_subscription():
     current_user.plan_cancelled = True
     current_user.upgrade_method = 'cancelled'
     db.session.commit()
-    flash('Abo gekündigt. Dein Plan bleibt bis zum Ablauf der aktuellen Laufzeit aktiv. Keine Rückerstattung.')
+    flash('Abo gekündigt. Dein Plan bleibt bis zum Ablauf der aktuellen Laufzeit aktiv. Keine Rückerstattung.', 'warning')
     return redirect(url_for('profile'))
 
 
@@ -390,7 +390,7 @@ def create_checkout_session(plan):
         return redirect(session.url)
     except Exception as e:
         print('Stripe error:', e)
-        flash('Fehler bei Stripe.')
+        flash('Fehler bei Stripe.', 'danger')
         return redirect(url_for('upgrade'))
 
 
@@ -420,7 +420,7 @@ def stripe_success(plan):
     db.session.add(payment)
     db.session.commit()
     enforce_qrcode_limit(current_user)
-    flash(f'{plan.capitalize()} Plan aktiviert!')
+    flash(f'{plan.capitalize()} Plan aktiviert!', 'success')
     return redirect(url_for('profile'))
 
 # Helper to generate qr code files
@@ -595,11 +595,11 @@ def calculate_prorated_credit(user):
 def index():
     if request.method == 'POST':
         if not current_user.is_authenticated:
-            flash('Bitte einloggen um QR-Codes zu speichern.')
+            flash('Bitte einloggen um QR-Codes zu speichern.', 'danger')
             return redirect(url_for('index'))
         limit = PLAN_LIMITS.get(current_user.plan)
         if limit is not None and len(current_user.qrcodes) >= limit:
-            flash('Limit für deinen Plan erreicht.')
+            flash('Limit für deinen Plan erreicht.', 'warning')
             return redirect(url_for('index'))
         data_type = request.form.get('data_type', 'url')
         if data_type == 'url':
@@ -652,10 +652,10 @@ def index():
             qr.jpg_path = jpg_path
             qr.svg_path = svg_path
             db.session.commit()
-            flash('QR-Code erstellt!')
+            flash('QR-Code erstellt!', 'success')
         except Exception as e:
             db.session.rollback()
-            flash('Fehler beim Erstellen des QR-Codes')
+            flash('Fehler beim Erstellen des QR-Codes', 'danger')
             print('QR creation failed:', e)
         return redirect(url_for('index'))
 
@@ -685,7 +685,7 @@ def index():
 def show_qr(qr_id):
     qr = QRCode.query.filter_by(public_id=qr_id).first()
     if qr is None:
-        flash('Dieser QR-Code ist nicht mehr aktuell.')
+        flash('Dieser QR-Code ist nicht mehr aktuell.', 'danger')
         return redirect(url_for('index'))
     vcard = None
     if qr.data_type == 'contact':
@@ -707,7 +707,7 @@ def preview(qr_id):
     try:
         return send_from_directory(directory, filename)
     except FileNotFoundError:
-        flash('Datei nicht gefunden')
+        flash('Datei nicht gefunden', 'danger')
         return redirect(url_for('index'))
 
 @app.route('/download/<string:qr_id>/<fmt>')
@@ -729,7 +729,7 @@ def download(qr_id, fmt):
     try:
         return send_from_directory(directory, filename, as_attachment=True)
     except FileNotFoundError:
-        flash('Datei nicht gefunden')
+        flash('Datei nicht gefunden', 'danger')
         return redirect(url_for('index'))
 
 @app.route('/delete/<string:qr_id>', methods=['POST'])
@@ -739,22 +739,22 @@ def delete(qr_id):
     if qr.user_id != current_user.id:
         return 'Unauthorized', 403
     if qr.created_at and datetime.utcnow() - qr.created_at < DELETE_GRACE_PERIOD:
-        flash('QR-Code kann erst nach 14 Tagen gelöscht werden')
+        flash('QR-Code kann erst nach 14 Tagen gelöscht werden', 'warning')
         return redirect(url_for('index'))
     for path in [qr.png_path, qr.jpg_path, qr.svg_path]:
         if path and os.path.exists(path):
             try:
                 os.remove(path)
             except OSError:
-                flash('Datei konnte nicht entfernt werden')
+                flash('Datei konnte nicht entfernt werden', 'danger')
     try:
         db.session.delete(qr)
         db.session.commit()
     except Exception:
         db.session.rollback()
-        flash('Fehler beim Löschen des QR-Codes')
+        flash('Fehler beim Löschen des QR-Codes', 'danger')
     else:
-        flash('QR-Code gelöscht')
+        flash('QR-Code gelöscht', 'success')
     return redirect(url_for('index'))
 
 
@@ -884,11 +884,11 @@ def edit_user(user_id):
         new_email = request.form.get('email')
 
         if user.username != new_username and User.query.filter_by(username=new_username).first():
-            flash('Benutzername bereits vergeben')
+            flash('Benutzername bereits vergeben', 'danger')
             return redirect(url_for('edit_user', user_id=user.id))
 
         if user.email != new_email and User.query.filter_by(email=new_email).first():
-            flash('Email bereits vergeben')
+            flash('Email bereits vergeben', 'danger')
             return redirect(url_for('edit_user', user_id=user.id))
 
         user.username = new_username
@@ -901,11 +901,11 @@ def edit_user(user_id):
             db.session.commit()
         except Exception:
             db.session.rollback()
-            flash('Fehler beim Speichern der Änderungen')
+            flash('Fehler beim Speichern der Änderungen', 'danger')
             return redirect(url_for('edit_user', user_id=user.id))
 
         enforce_qrcode_limit(user)
-        flash('Benutzer aktualisiert')
+        flash('Benutzer aktualisiert', 'success')
         return redirect(url_for('admin_panel'))
     return render_template('edit_user.html', user=user)
 
@@ -932,15 +932,15 @@ def admin_delete_qrcode(qr_id):
             try:
                 os.remove(path)
             except OSError:
-                flash('Datei konnte nicht entfernt werden')
+                flash('Datei konnte nicht entfernt werden', 'danger')
     try:
         db.session.delete(qr)
         db.session.commit()
     except Exception:
         db.session.rollback()
-        flash('Fehler beim Löschen des QR-Codes')
+        flash('Fehler beim Löschen des QR-Codes', 'danger')
     else:
-        flash('QR-Code gelöscht')
+        flash('QR-Code gelöscht', 'success')
     return redirect(url_for('admin_user_qrcodes', user_id=user_id))
 
 
@@ -957,16 +957,16 @@ def delete_user(user_id):
                 try:
                     os.remove(path)
                 except OSError:
-                    flash('Datei konnte nicht entfernt werden')
+                    flash('Datei konnte nicht entfernt werden', 'danger')
         db.session.delete(qr)
     try:
         db.session.delete(user)
         db.session.commit()
     except Exception:
         db.session.rollback()
-        flash('Fehler beim Löschen des Benutzers')
+        flash('Fehler beim Löschen des Benutzers', 'danger')
     else:
-        flash('Benutzer gelöscht')
+        flash('Benutzer gelöscht', 'success')
     return redirect(url_for('admin_panel'))
 
 
