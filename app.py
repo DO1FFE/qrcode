@@ -388,6 +388,7 @@ def create_checkout_session(plan):
             success_url=url_for('stripe_success', plan=plan, _external=True) + f'?period={period}&session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=url_for('upgrade', _external=True),
             customer_email=current_user.email,
+            automatic_tax={'enabled': True},
         )
         return redirect(session.url)
     except Exception as e:
