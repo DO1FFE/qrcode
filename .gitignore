@@ -3,3 +3,4 @@ instance/
 *.pyc
 *.log
 qrcodes/
+.env
