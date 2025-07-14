@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from flask import (
     Flask,
     render_template,
@@ -34,7 +35,8 @@ import stripe
 import secrets
 import string
 
-
+# Load environment variables from a .env file if present
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')

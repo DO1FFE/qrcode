@@ -5,3 +5,4 @@ qrcode[pil]
 Pillow
 requests
 stripe
+python-dotenv

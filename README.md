@@ -40,8 +40,10 @@ Fällt dein Plan auf **Basic** zurück, werden automatisch die ältesten QR-Code
 
 ## Konfiguration
 
-Die Anwendung erwartet die Stripe-API-Schlüssel in den Umgebungsvariablen
-`STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY`.
+Die Anwendung lädt ihre Konfigurationswerte aus einer Datei `.env`.
+Trage dort unter anderem deine Stripe-Schlüssel in den Variablen
+`STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY` ein. Eine Vorlage findest du
+in `.env.sample`.
 
 Generierte QR-Code-Bilder werden im Verzeichnis `qrcodes/` gespeichert.
 
