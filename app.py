@@ -395,7 +395,7 @@ def create_checkout_session(plan):
         return redirect(session.url)
     except Exception as e:
         print('Stripe error:', e)
-        flash('Fehler bei Stripe.', 'danger')
+        flash(f'Fehler bei Stripe: {e}', 'danger')
         return redirect(url_for('upgrade'))
 
 
