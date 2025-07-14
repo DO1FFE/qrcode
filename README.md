@@ -44,6 +44,8 @@ Die Anwendung lädt ihre Konfigurationswerte aus einer Datei `.env`.
 Trage dort unter anderem deine Stripe-Schlüssel in den Variablen
 `STRIPE_PUBLISHABLE_KEY` und `STRIPE_SECRET_KEY` ein. Eine Vorlage findest du
 in `.env.sample`.
+Sollte der Zugriff auf Stripe wegen eines ungeprüften Zertifikats scheitern,
+kannst du mit `STRIPE_VERIFY_SSL=0` die Zertifikatsprüfung deaktivieren.
 
 Generierte QR-Code-Bilder werden im Verzeichnis `qrcodes/` gespeichert.
 
