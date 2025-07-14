@@ -35,8 +35,10 @@ import stripe
 import secrets
 import string
 
-# Load environment variables from a .env file if present
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+# Load environment variables from a .env file if present.
+# Override existing environment variables to ensure the latest
+# values from the .env file are always used.
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'), override=True)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
