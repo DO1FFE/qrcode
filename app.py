@@ -52,6 +52,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Stripe configuration
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+verify_env = os.environ.get('STRIPE_VERIFY_SSL', '1').lower()
+stripe.verify_ssl_certs = verify_env not in ('0', 'false')
 
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
