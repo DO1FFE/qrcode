@@ -4,7 +4,7 @@ Die Anwendung nutzt ein modernes Design auf Basis des Minty-Bootswatch-Themes.
 
 ## Funktionen
 - Registrierung (mit Email) und Login per Benutzername und Passwort
-- Generieren von QR-Codes mit Farbe, Hintergrundfarbe und runden Ecken
+- Generieren von QR-Codes mit Farbe, Hintergrundfarbe, verschiedenen Stilen und optionalem Farbverlauf
 - Größe der QR-Codes passt sich automatisch dem Inhalt an
 - Verschiedene Inhalte möglich: URL, Text, Email, Telefon, SMS oder Kontaktdaten
 - QR-Codes werden pro Benutzer gespeichert

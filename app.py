@@ -27,8 +27,16 @@ import traceback
 import requests
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
-from qrcode.image.styles.colormasks import SolidFillColorMask
+from qrcode.image.styles.moduledrawers import (
+    RoundedModuleDrawer,
+    CircleModuleDrawer,
+    VerticalBarsDrawer,
+    HorizontalBarsDrawer,
+)
+from qrcode.image.styles.colormasks import (
+    SolidFillColorMask,
+    VerticalGradiantColorMask,
+)
 import qrcode.image.svg
 from PIL import ImageColor
 import stripe
@@ -436,7 +444,9 @@ def generate_qr_files(
     url,
     color='black',
     bgcolor='white',
-    rounded=False,
+    style='square',
+    gradient=False,
+    gradient_color=None,
     user_id=None,
     file_id=None,
 ):
@@ -452,17 +462,35 @@ def generate_qr_files(
     max_pixels = 400
     qr.box_size = max(1, max_pixels // qr.modules_count)
 
-    drawer = RoundedModuleDrawer() if rounded else None
+    if style == 'rounded':
+        drawer = RoundedModuleDrawer()
+    elif style == 'circle':
+        drawer = CircleModuleDrawer()
+    elif style == 'vertical':
+        drawer = VerticalBarsDrawer()
+    elif style == 'horizontal':
+        drawer = HorizontalBarsDrawer()
+    else:
+        drawer = None
+
     try:
         front = ImageColor.getcolor(color, "RGB")
         back = ImageColor.getcolor(bgcolor, "RGB")
+        grad = (
+            ImageColor.getcolor(gradient_color, "RGB") if gradient and gradient_color else None
+        )
     except ValueError as e:
         raise ValueError("Ungültige Farbe") from e
+
+    if gradient and grad:
+        mask = VerticalGradiantColorMask(top_color=front, bottom_color=grad, back_color=back)
+    else:
+        mask = SolidFillColorMask(front_color=front, back_color=back)
 
     img = qr.make_image(
         image_factory=StyledPilImage,
         module_drawer=drawer,
-        color_mask=SolidFillColorMask(front_color=front, back_color=back),
+        color_mask=mask,
     )
     qr_id = file_id or os.urandom(8).hex()
     user_folder = (
@@ -633,7 +661,9 @@ def index():
             data_input = request.form.get('url')
         color = request.form.get('color', 'black')
         bgcolor = request.form.get('bgcolor', 'white')
-        rounded = request.form.get('rounded') == 'on'
+        style = request.form.get('style', 'square')
+        gradient = request.form.get('gradient') == 'on'
+        grad_color = request.form.get('gradcolor')
         description = request.form.get('description')
         try:
             public_id = generate_public_id()
@@ -651,7 +681,9 @@ def index():
                 qr_link,
                 color=color,
                 bgcolor=bgcolor,
-                rounded=rounded,
+                style=style,
+                gradient=gradient,
+                gradient_color=grad_color,
                 user_id=current_user.id,
                 file_id=qr.public_id,
             )
